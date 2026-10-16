@@ -92,18 +92,37 @@ library HLPriceGuard {
         return (Breach.None, 0, 0);
     }
 
-    /// For prices the caller stores between reads: reject an oracle that moved more than
-    /// `maxJumpBps` since `prevPrice` was read at `prevAt`, if that was within `window`
-    /// seconds. Matters most on HIP-3, where one deployer posts the oracle.
-    function checkJump(uint256 oraclePx, uint256 prevPrice, uint256 prevAt, uint16 maxJumpBps, uint256 window)
+    /// Jump check with a latch, for contracts that read the oracle repeatedly.
+    ///
+    /// `anchor` is the last accepted oracle. A read more than `maxJumpBps` from it is a Jump and
+    /// leaves the anchor where it was, so a bad price that then walks on in small steps keeps
+    /// being rejected. Reads resume once the oracle is back within `maxJumpBps` of the anchor.
+    /// Replayed on xyz:SKHX 2026-07-27 (cases/skhx-20260727): comparing only with the previous
+    /// read let 39 updates between $870 and $955 through; the latch let none through.
+    struct JumpLatch {
+        uint256 anchor;
+        uint64 anchorAt;
+    }
+
+    function observe(JumpLatch storage l, uint256 oraclePx, uint16 maxJumpBps)
         internal
-        view
         returns (Breach reason, uint256 observedBps, uint256 limitBps)
     {
-        if (prevPrice == 0 || block.timestamp > prevAt + window) return (Breach.None, 0, 0);
-        uint256 v = diffBps(oraclePx, prevPrice);
-        if (v > maxJumpBps) return (Breach.Jump, v, maxJumpBps);
+        if (l.anchor != 0) {
+            uint256 v = diffBps(oraclePx, l.anchor);
+            if (v > maxJumpBps) return (Breach.Jump, v, maxJumpBps);
+        }
+        l.anchor = oraclePx;
+        l.anchorAt = uint64(block.timestamp);
         return (Breach.None, 0, 0);
+    }
+
+    /// Move the anchor without the jump check. A real gap (a stock opening after a weekend)
+    /// leaves the latch tripped until this is called; call it only after an independent
+    /// reference agrees with `oraclePx`, or from governance.
+    function rearm(JumpLatch storage l, uint256 oraclePx) internal {
+        l.anchor = oraclePx;
+        l.anchorAt = uint64(block.timestamp);
     }
 
     /// The oracle price, or a revert naming the check that failed.

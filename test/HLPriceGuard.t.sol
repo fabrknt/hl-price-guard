@@ -52,13 +52,14 @@ contract Harness {
         return PythRef.read(IPyth(p), bytes32(0), maxAge, maxConfBps);
     }
 
-    function jump(uint256 px, uint256 prev, uint256 prevAt, uint16 maxBps, uint256 window)
-        external
-        view
-        returns (HLPriceGuard.Breach, uint256)
-    {
-        (HLPriceGuard.Breach r, uint256 v,) = HLPriceGuard.checkJump(px, prev, prevAt, maxBps, window);
-        return (r, v);
+    HLPriceGuard.JumpLatch public latch;
+
+    function observe(uint256 px, uint16 maxBps) external returns (HLPriceGuard.Breach r, uint256 v) {
+        (r, v,) = HLPriceGuard.observe(latch, px, maxBps);
+    }
+
+    function rearm(uint256 px) external {
+        HLPriceGuard.rearm(latch, px);
     }
 
     function spend(uint256 notional, uint256 cap, uint64 windowSecs) external {
@@ -202,17 +203,37 @@ contract HLPriceGuardTest is Test {
         assertEq(bps, 301);
     }
 
-    /// SK Hynix (xyz:SKHX), 2026-07-27 23:00:03.946 UTC: the deployer's oracle went
-    /// $1,131.40 -> $954.99 in 3.2 s, 2.7 s before the first liquidation.
-    function test_jumpCatchesSkhx() public {
-        (HLPriceGuard.Breach r, uint256 bps) = h.jump(954.99e18, 1131.4e18, block.timestamp - 3, 200, 90);
+    /// SK Hynix (xyz:SKHX), 2026-07-27: all 144 deployer oracle updates, 22:57:36-23:04:45 UTC.
+    /// The first bad update ($1,131.40 -> $954.99) is followed by -100 bp steps down to $870,
+    /// each small enough to pass a 200 bp check against the previous read.
+    function test_jumpLatchOnSkhx() public {
+        string memory json = vm.readFile("cases/skhx-20260727/skhx-oracle.json");
+        uint256 accepted;
+        uint256 acceptedBelow1000;
+        uint256 firstJumpBps;
+        for (uint256 i; i < 144; i++) {
+            uint256 px = vm.parseJsonUint(json, string.concat(".updates[", vm.toString(i), "][3]"));
+            (HLPriceGuard.Breach r, uint256 v) = h.observe(px, 200);
+            if (r == HLPriceGuard.Breach.None) {
+                accepted++;
+                if (px < 1000_00) acceptedBelow1000++;
+            } else if (firstJumpBps == 0) {
+                firstJumpBps = v;
+            }
+        }
+        assertEq(firstJumpBps, 1560); // 23:00:03.946, 1559.2 rounded up
+        assertEq(acceptedBelow1000, 0);
+        assertEq(accepted, 100); // same as P3 in replay_c.py
+    }
+
+    function test_jumpLatchNeedsRearmAfterRealGap() public {
+        h.observe(100, 200);
+        (HLPriceGuard.Breach r,) = h.observe(105, 200); // a 5% opening gap
         assertEq(uint8(r), uint8(HLPriceGuard.Breach.Jump));
-        assertEq(bps, 1560); // 1559.2 rounded up
-        // An ordinary update (p99 27.8 bp in the shadow record) passes.
-        (r,) = h.jump(1134.5e18, 1131.4e18, block.timestamp - 3, 200, 90);
-        assertEq(uint8(r), uint8(HLPriceGuard.Breach.None));
-        // So does anything once the stored price is older than the window.
-        (r,) = h.jump(954.99e18, 1131.4e18, block.timestamp - 91, 200, 90);
+        (r,) = h.observe(105, 200);
+        assertEq(uint8(r), uint8(HLPriceGuard.Breach.Jump)); // stays tripped
+        h.rearm(105);
+        (r,) = h.observe(105, 200);
         assertEq(uint8(r), uint8(HLPriceGuard.Breach.None));
     }
 

@@ -49,7 +49,30 @@ position paid about $7–9K for it after Papertrade's haircut.
 - The asymmetric impact haircut keeps about 2/3 of the gain at these move sizes, so it cuts the
   payoff but does not remove it.
 
+## Replay under the launch-pool rules (docs/c-launch-pool-design.md)
+HL's ETH oracle for 21:33–23:14 UTC comes from the validators' `SetGlobalAction` in the explorer
+blocks (`s3://hl-mainnet-node-data/explorer_blocks/1100000000/`, heights 1179121000–1179206099,
+1,968 updates, never more than 8.1 s apart): `eth-oracle.json`. The public HyperEVM RPC cannot
+give this: it ignores the block number for precompile calls.
+
+| rule | take on the 228 ETH positions |
+|---|---|
+| settle at the BBO mid (Papertrade) | $2,052,046 |
+| settle at the oracle, same moment | $1,738,919 |
+| settle at the next oracle update (two-step) | $1,664,799 |
+| refuse closes with mid–oracle gap over 15 bp | refuses 0 of 228 (gap at close: median 5.8 bp, max 10.2 bp) |
+| cap notional at $3.3M per minute | at most $55,101, against $130,873 spent |
+
+(Take = notional x price move, the same formula for every rule. Papertrade's recorded raw PnL is
+about 2.5% lower, and its haircut then keeps about 70%.)
+
+Moving the settlement price to the oracle barely helps, because the oracle moved too. Binance's
+ETHUSDT moved the same way in 16 of 18 rounds, by almost the same amount, timed with the
+attacker's HL orders (`rounds_vs_binance.py`). Whether the push spread through arbitrage or the
+attacker also traded elsewhere, the public HL data cannot say.
+
 ## Files
 - `hl_fills.py`, `papertrade_events.py`: regenerate `hl-fills.json` and `positions.json`.
+- `replay_c.py`: the replay above. `rounds_vs_binance.py`: mid, oracle and Binance per round.
 - Event layouts are inferred (the contract is not verified on any explorer we tried); every number
   above follows from them and matches the reported totals.

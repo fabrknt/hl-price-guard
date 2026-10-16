@@ -4,6 +4,7 @@ test = "test"
 libs = ["lib"]
 solc = "0.8.28"
 evm_version = "cancun"
+fs_permissions = [{ access = "read", path = "./cases" }]
 
 [rpc_endpoints]
 hyperevm = "https://rpc.hyperliquid.xyz/evm"

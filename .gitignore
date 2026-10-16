@@ -1,1 +1,4 @@
 data/
+out/
+cache/
+.DS_Store

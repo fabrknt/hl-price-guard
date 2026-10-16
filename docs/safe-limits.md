@@ -3,20 +3,38 @@
 For contracts that settle, liquidate or mint against HyperCore prices. Every rule below has a
 case or a measurement behind it; where a number is a first estimate, it says so.
 
-## 1. Settle on the oracle, never on the BBO
+## 1. Settle on the oracle, and do not expect it to be enough
 | Precompile | Who moves it | What it costs to move |
 |---|---|---|
 | `0x80e` BBO | anyone with market orders | the spread and the book's depth, for as long as you hold it |
 | `0x806` mark | partly the HL book | less than the oracle, more than the BBO |
-| `0x807` oracle, core perps | validators, from external venues | moving several outside venues at once |
+| `0x807` oracle, core perps | validators, from external venues | more than the BBO, but on ETH a push on HL reached it (below) |
 | `0x807` oracle, HIP-3 perps | **the market's deployer** | one key |
 
 Papertrade (cases/papertrade-20261010) settled at the BBO mid. About $10K on Hyperliquid
 moved ETH's mid about 10 bp for a minute, and each $10M position on Papertrade paid $7–9K for
 it: $130,873 spent, $1,407,332 taken, 10.8 to 1.
 
-`HLPriceGuard.read` always returns the oracle. The BBO and mark are read only to notice a
-pushed book.
+Replaying the same 228 positions against HL's oracle (validators' `SetGlobalAction`, from the
+L1 explorer blocks) changes less than expected:
+
+| settle at | take (notional x price move) |
+|---|---|
+| BBO mid, as Papertrade did | $2,052,046 |
+| oracle at the same moment | $1,738,919 (-15%) |
+| oracle, first update after the request (two-step) | $1,664,799 (-19%) |
+
+The oracle moved with the push. In 16 of 18 rounds Binance's ETHUSDT moved the same way by
+almost the same amount (21:41: mid 16.3 bp, oracle 12.7 bp, Binance 12.9 bp), and the timing
+follows the attacker's HL orders: $1.25M sells from 68 s to 106 s while Binance fell 13 bp, then
+a $2.61M buy-back right after the close, with Binance rebounding in the same second. Either the
+push on HL spread to other venues through arbitrage, or the attacker also traded elsewhere; the
+public HL data cannot tell which. Either way, for ETH on HL, "the oracle comes from outside
+venues" did not stop a one-minute push.
+
+`HLPriceGuard.read` still returns the oracle: it removes the part of the move that stays on HL,
+and for most assets the outside venues are harder to reach than HL's book. But what stopped
+Papertrade on replay is the exposure cap (section 4), not the choice of price.
 
 ## 2. Use the cheap prices as tripwires
 `HLPriceGuard.Bounds` rejects a read when:
@@ -25,9 +43,10 @@ pushed book.
 - the mark is more than `maxMarkOracleBps` from the oracle;
 - the BBO mid is more than `maxMidOracleBps` from the oracle.
 
-A tripwire only stops a push bigger than its bound, and the bound has to sit above normal
-noise. ETH's mid already drifts up to 7.2 bp from the oracle (below), so a bound at 2x is about
-15 bp: it would have stopped Papertrade's 16 bp rounds and none of the 5–14 bp ones. Bounds limit how far the price can be
+A tripwire only sees the gap between the book and the oracle, and it has to sit above normal
+noise: ETH's mid already drifts up to 7.2 bp from the oracle (below), so a bound at 2x is about
+15 bp. On Papertrade it would have caught nothing: because the oracle followed the push, the gap
+at close was 5.8 bp at the median and 10.2 bp at most. Bounds limit how far the price can be
 pushed unnoticed; section 4 limits how much that push can be worth. You need both.
 
 ### Normal gaps (first sample)
@@ -64,12 +83,30 @@ this on xyz markets: in trading hours the gap to RedStone reached 76 bp (p99 9.6
 hours it reached 484 bp. A first estimate is 150 bp in trading hours and no deviation check out
 of hours. US trading hours are not yet measured.
 
-**Jumps (`checkJump`).** Store the price at each read and reject a move larger than
-`maxJumpBps` since the last one. On xyz the deployer's oracle moved at most 66 bp within 90 s
-in the hip3-ops sample. At 200 bp, `checkJump` would have rejected SK Hynix's first bad update
-(2026-07-27 23:00:03.946 UTC, $1,131.40 to $954.99 in 3.2 s), 2.7 s before the first
-liquidation. It only compares consecutive reads within `window`: an update that arrives after a
-long quiet spell is not compared with anything.
+**Jumps (`JumpLatch`).** Keep the last accepted oracle as an anchor and reject any read more
+than `maxJumpBps` from it. On xyz the deployer's oracle moved at most 66 bp within 90 s in the
+hip3-ops sample, so 200 bp is a first estimate.
+
+The anchor must not move on a rejected read. SK Hynix (2026-07-27, cases/skhx-20260727) shows
+why. The first bad update took the oracle from $1,131.40 to $954.99 in 3.2 s, 2.7 s before the
+first liquidation; after that it walked down to $870 in -100 bp steps, each small enough to pass
+a check against the previous read. Replaying all 144 updates at 200 bp:
+
+| stored price | accepted | accepted below $1,000 |
+|---|---|---|
+| previous read | 142 / 144 | 39, down to $870.12 |
+| last accepted, forgotten after 90 s | 84 / 144 | 10, down to $872.52 |
+| last accepted, kept (the latch) | 100 / 144 | 0 |
+
+With the latch, reads paused from 23:00:03.9 and resumed at 23:02:15.7, once the oracle was back
+within 200 bp of $1,131.40. A real gap (a stock opening 5% higher after a weekend) also trips
+the latch and keeps it tripped; `rearm` moves the anchor, and should only be called once an
+independent reference agrees, or by governance.
+
+**Past precompile values cannot be read back.** The public HyperEVM RPC ignores the block
+number for precompile calls: `eth_call` to `0x807` at a block from 10-10 returns today's
+price. Audits and replays need the L1 data: validators' `SetGlobalAction` for core perps and
+deployers' `setOracle` for HIP-3, in the explorer blocks of `s3://hl-mainnet-node-data`.
 
 ## 4. Cap what one push can be worth
 If moving the price by `d` bp for one window costs `C`, an exposure `E` settled in that window
@@ -77,10 +114,15 @@ pays `E * d / 10000`. Keep it below the cost with a margin `k`:
 
     E_max = C * 10000 / (d * k)          // ExposureBudget.safeCap
 
-The attacker picks any `d` up to your tripwire bound, so take the smallest `C(d) / d` over that
-range. Papertrade gives one measured point for ETH: `C` about $10K at `d` = 10 bp. With `k` = 3
-that is **E_max of about $3.3M per minute**. Papertrade's
-per-side open-interest caps were current OI plus about $1B, about 300 times that.
+The attacker picks `d`, and the tripwire may not limit it (on Papertrade the oracle moved with
+the book), so take the smallest `C(d) / d` over the moves you have measured. Papertrade gives one
+point for ETH: `C` about $10K at `d` = 10 bp. With `k` = 3 that is **E_max of about $3.3M per
+minute**. Papertrade's per-side open-interest caps were current OI plus about $1B, about 300
+times that.
+
+On replay this is the rule that matters. Papertrade's positions earned 9.18 bp of notional on
+average; at $3.3M per minute over the 18 minutes in which they closed, that is at most $55,101,
+against the $130,873 the attacker spent on HL. The attack stops paying.
 
 `ExposureBudget.spend` enforces the cap per fixed window. Because the window resets, up to
 `2 * cap` can settle across a boundary; size the cap with that in mind.

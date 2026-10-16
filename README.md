@@ -6,7 +6,7 @@ HyperEVM contracts can read HyperCore prices through precompiles:
 
 | Precompile | Price | Set by | How hard to move |
 |---|---|---|---|
-| `0x…807` | oracle | validators, from external venues | hard |
+| `0x…807` | oracle | validators, from external venues (HIP-3: the deployer) | harder, but a push on HL reached it for ETH (cases/papertrade-20261010) |
 | `0x…806` | mark | oracle combined with the HL book | medium |
 | `0x…80e` | best bid / ask (BBO) | the HL book itself | easy |
 
@@ -22,8 +22,9 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - `ExposureBudget`: caps notional settled per time window.
   - `HLPrecompiles`: raw reads and the two index encodings.
 - `docs/safe-limits.md`: which price to use, how to set the bounds, and how to size the cap.
-- `cases/`: incidents rebuilt from public data. First: Papertrade, 2026-10-10 22:00 UTC,
-  where one wallet moved HL's ETH mid and settled 500x positions against it.
+- `cases/`: incidents rebuilt from public data, each replayed under the launch-pool rules.
+  - Papertrade, 2026-10-10: one wallet moved HL's ETH mid and settled 500x positions against it.
+  - xyz:SKHX, 2026-07-27: the deployer's oracle fell 15.6% in one update, then stepped down.
 - `measure/`: `normal_gaps.py` samples the gaps the guard checks. Next: per asset, the cost of
   holding a move, to size `ExposureBudget`.
 
