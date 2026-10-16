@@ -127,8 +127,41 @@ against the $130,873 the attacker spent on HL. The attack stops paying.
 `ExposureBudget.spend` enforces the cap per fixed window. Because the window resets, up to
 `2 * cap` can settle across a boundary; size the cap with that in mind.
 
-`C` differs by asset and by hour: thin books are cheap to move. It should be measured per asset
-(planned under `measure/`) rather than copied from ETH.
+### Measuring `C` per asset
+Papertrade's per-round costs (`cases/papertrade-20261010/calibrate_cost.py`, against HL's archived
+ETH book at the time) came to 0.27 of what static book depth predicts: the book refills, and the
+move spread to other venues. So, as a first estimate,
+
+    C(10 bp) ~= 0.27 * depth10 * 10 / 10000      cap per minute ~= 0.27 * depth10 / k
+
+where `depth10` is the notional within 10 bp of the mid on the thinner side. On 10-10 ETH's
+depth10 was about $14M, giving $1.3M per minute at `k` = 3; the $3.3M above, from the whole
+episode's cost, is the looser of the two estimates.
+
+`measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
+moment. First run, 15 minutes on Saturday 2026-10-17 (US stocks closed, so the xyz books are at
+their weekend depth; re-measure in US hours and on weekdays):
+
+| asset | depth10 p10 | cap per minute (k = 3) |
+|---|---|---|
+| BTC | $20.7M | $1.86M |
+| ETH | $3.7M | $0.33M |
+| SOL | $1.3M | $0.12M |
+| HYPE | $0.42M | $0.04M |
+| xyz:XYZ100 | $1.3M | $0.12M |
+| xyz:SP500 | $1.1M | $0.10M |
+| xyz:SPCX | $0.88M | $0.08M |
+| xyz:GOLD | $0.50M | $0.05M |
+| xyz:CL | $0.45M | $0.04M |
+| xyz:TSLA | $0.32M | $0.03M |
+| xyz:NVDA | $0.24M | $0.02M |
+| xyz:SKHX | $0.17M | $0.02M |
+| xyz:SMSN | $0.03M | under $0.01M |
+| xyz:KORU | $0.01M | under $0.01M |
+
+xyz:SKHX carried $376M of open interest that day against a safe settlement rate of about $20K a
+minute. Anything settling against these prices at Papertrade's sizes is far outside the safe
+range.
 
 ## 5. Checklist
 - [ ] Settlement, liquidation and minting read `0x807`, not `0x80e`.
