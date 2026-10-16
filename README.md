@@ -21,11 +21,10 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - `PythRef`: Pyth on HyperEVM as the independent reference (it must be updated in the same tx).
   - `ExposureBudget`: caps notional settled per time window.
   - `HLPrecompiles`: raw reads and the two index encodings.
-  - `LaunchPool`: the C design, M1 draft. A loss-funded counterparty pool for one HIP-3 perp,
-    settling two-step at the guarded oracle, capped per minute and by net open interest.
+  - The launch pool built on this library (C) lives in its own repo, Primer.
 - `docs/safe-limits.md`: which price to use, how to set the bounds, and how to size the cap.
-- `docs/c-launch-pool-design.md`: the launch-pool design memo (Japanese), with replay results.
-- `cases/`: incidents rebuilt from public data, each replayed under the launch-pool rules.
+- `docs/c-launch-pool-design.md`: points to Primer, where the launch-pool design now lives.
+- `cases/`: incidents rebuilt from public data, each replayed under the launch-pool rules (Primer).
   - Papertrade, 2026-10-10: one wallet moved HL's ETH mid and settled 500x positions against it.
   - xyz:SKHX, 2026-07-27: the deployer's oracle fell 15.6% in one update, then stepped down.
 - `measure/`: `normal_gaps.py` samples the gaps the guard checks; `safe_caps.py` turns book
