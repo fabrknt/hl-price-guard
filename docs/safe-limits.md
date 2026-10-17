@@ -137,6 +137,18 @@ otherwise waits until nothing settled under the old settings is inside either wi
 The older `ExposureBudget.Window` resets at fixed times, so up to `2 * cap` can settle across a
 reset, halving the margin `k`. It stays for existing users.
 
+**What `C` assumes: a push held for about a minute.** Papertrade's attacker opened, pushed and
+closed in rounds of about a minute, and `C` is what those rounds cost. A settlement that reads
+one instant (a close, a liquidation, a batch) only needs the price moved at that instant. A
+shorter push may cost less than `C` (unmeasured: the spread, fees and trading cost of the push
+and unwind remain), and if the application offers several independently timed
+settlements, each can ride its own short push: the rolling cap limits their total, not how long
+each push must last. For such settlements the cap above is too loose by an amount we have not
+measured. A single price read after an irrevocable request helps little if the read time is
+predictable, since a short push can be timed to it (in the Papertrade replay no oracle update was
+more than 8.1 s after the previous one). A price averaged over a window that starts after the
+request does make the push last that long; measure `C` for that window before relying on it.
+
 ### Measuring `C` per asset
 Papertrade's per-round costs (`cases/papertrade-20261010/calibrate_cost.py`, against HL's archived
 ETH book at the time) came to 0.27 of what static book depth predicts: the book refills, and the
@@ -147,6 +159,12 @@ move spread to other venues. So, as a first estimate,
 where `depth10` is the notional within 10 bp of the mid on the thinner side. On 10-10 ETH's
 depth10 was about $14M, giving $1.3M per minute at `k` = 3; the $3.3M above, from the whole
 episode's cost, is the looser of the two estimates.
+
+0.27 rests on one incident on one asset, and a first attempt at a second point (2026-10-17) did
+not produce one: HL's archived book has a snapshot only every ~5 s, too sparse to see a sweep's
+impact, and an average price-impact fit over all trades measures something other than what a
+push costs. The next step is to collect real push-and-unwind round trips by single wallets and
+measure what they cost.
 
 `measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
 moment. First run, 15 minutes on Saturday 2026-10-17 (US stocks closed, so the xyz books are at
@@ -173,14 +191,25 @@ xyz:SKHX carried $376M of open interest that day against a safe settlement rate 
 minute. Anything settling against these prices at Papertrade's sizes is far outside the safe
 range.
 
+**For xyz markets these caps cover the book, not the oracle.** They bound what a push on the HL
+book is worth, which matters for anything that reads the BBO or mark, or whose checks lean on
+them. A HIP-3 oracle is posted by the deployer, and whoever holds that key can post any value:
+that is not a cost an attacker pays, and no book-derived cap offsets it. Settle on a HIP-3 oracle
+only while a fresh independent reference agrees with it (section 3); when none can be fresh, as
+for stocks out of hours, pause price-sensitive settlement or fall back to an explicitly governed
+rule. The cap then limits only what a book push adds on top.
+
 ## 5. Checklist
 - [ ] Settlement, liquidation and minting read `0x807`, not `0x80e`.
 - [ ] HIP-3 assets use both encodings: `dex * 10000 + i` for `0x806`/`0x807`/`0x80a`,
       `100000 + dex * 10000 + i` for `0x80e`.
 - [ ] Spread, mark–oracle and mid–oracle bounds are set at 2–3x their measured normal maximum.
 - [ ] HIP-3 assets also have an independent reference updated in the same transaction, and a
-      jump check.
+      jump check; settlement pauses whenever that reference cannot be fresh (stocks out of hours).
 - [ ] Notional settled per window is capped at `C * 10000 / (d * k)`, with `C` measured for the
       asset, using `ExposureBudget.Rolling` (a fixed window lets `2 * cap` through).
+- [ ] If settlement reads a single instant, the cap may be too loose: use a smaller cap, or settle
+      on a price averaged over a window that starts after an irrevocable request, with `C`
+      measured for that window.
 - [ ] What happens on a rejection is decided: revert, pause the market, or let only
       position-reducing actions through.
