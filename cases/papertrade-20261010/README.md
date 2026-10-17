@@ -74,7 +74,8 @@ attacker also traded elsewhere, the public HL data cannot say.
 ## Files
 - `hl_fills.py`, `papertrade_events.py`: regenerate `hl-fills.json` and `positions.json`.
 - `replay_c.py`: the replay above. `rounds_vs_binance.py`: mid, oracle and Binance per round;
-  `binance-klines.json` holds the raw Binance responses it used (fetched 2026-10-17, with query URLs;
-  pass it as the third argument to rerun offline), and `rounds-vs-binance.txt` is the output.
+  it fetches Binance's public 1-second klines itself (the raw responses are not redistributed here;
+  save them and pass the file as the third argument to rerun offline), and `rounds-vs-binance.txt`
+  is the output of the 2026-10-17 run.
 - Event layouts are inferred (the contract is not verified on any explorer we tried); every number
   above follows from them and matches the reported totals.
