@@ -29,6 +29,7 @@ library ExposureBudget {
         uint64 windowSecs;
         uint192 cap;
         uint64 lastSpendAt; // the slots forget after one window; reconfigure needs the last spend
+        bool spent; // lastSpendAt is meaningful (a spend at t = 0 is still a spend)
         uint256[7] slots; // SLICES + 1; each packs (uint64 epoch << 192 | uint192 amount)
     }
 
@@ -67,7 +68,7 @@ library ExposureBudget {
         uint256 amount = slot >> 192 == e ? uint192(slot) : 0;
         // amount + notional <= cap <= uint192.max; e < 2**64 for any realistic timestamp.
         r.slots[i] = (uint256(uint64(e)) << 192) | (amount + notional);
-        if (notional != 0) r.lastSpendAt = uint64(block.timestamp);
+        if (notional != 0) (r.lastSpendAt, r.spent) = (uint64(block.timestamp), true);
     }
 
     /// Notional counted against the cap right now.
@@ -91,7 +92,7 @@ library ExposureBudget {
             // Wait until the last spend is outside [t - W, t] for both the old and the new window.
             uint256 longer = windowSecs > r.windowSecs ? windowSecs : r.windowSecs;
             uint256 readyAt = uint256(r.lastSpendAt) + longer + 1;
-            if (r.lastSpendAt != 0 && block.timestamp < readyAt) revert NotDrained(readyAt);
+            if (r.spent && block.timestamp < readyAt) revert NotDrained(readyAt);
             delete r.slots;
         }
         _configure(r, cap, windowSecs);

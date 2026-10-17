@@ -438,7 +438,7 @@ contract HLPriceGuardTest is Test {
         uint256[24] memory ok;
         uint256[24] memory caps;
         uint256[24] memory ws;
-        uint256 t = 1_000;
+        uint256 t = ops[0] & 64 == 0 ? 1_000 : 0; // sometimes start at t = 0
         uint256 cap = CAP;
         uint64 w = 60;
         for (uint256 i; i < 24; ++i) {
@@ -471,6 +471,15 @@ contract HLPriceGuardTest is Test {
         h.spendRolling(0, CAP, 60); // epoch 110 reuses epoch 103's slot
         vm.warp(1_121);
         vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 1_035 + 120 + 1));
+        h.reconfigure(CAP / 2, 120);
+    }
+
+    /// Codex round 4: a spend at t = 0 must still hold a reconfigure back.
+    function test_rollingSpendAtTimeZero() public {
+        vm.warp(0);
+        h.spendRolling(CAP, CAP, 60);
+        vm.warp(1);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 121));
         h.reconfigure(CAP / 2, 120);
     }
 }
