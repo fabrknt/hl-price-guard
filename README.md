@@ -1,6 +1,6 @@
 # HL Price Guard (hl-price-guard)
 
-Private. A neutral Solidity library for any HyperEVM app that reads Hyperliquid's own prices.
+A neutral Solidity library for any HyperEVM app that reads Hyperliquid's own prices.
 Part of **Fabrknt for HIP-3** (fabrknt.com/hip3/price-guard); built for Hyperliquid, not affiliated with it.
 
 Scope: reading prices, detecting deviation (BBO, mark), an independent reference, a jump latch, and
@@ -59,3 +59,6 @@ mode cannot run HyperEVM's custom precompiles, so encodings were checked with `c
 `ExposureBudget.Rolling` has two fuzz tests (with and without `reconfigure`) that check every
 admitted spend against the cap and window it was admitted under; each fails when the guard it
 covers is removed.
+
+## License
+Apache-2.0 (see `LICENSE`). Not audited.
