@@ -50,8 +50,9 @@ at close was 5.8 bp at the median and 10.2 bp at most. Bounds limit how far the 
 pushed unnoticed; section 4 limits how much that push can be worth. You need both.
 
 ### Normal gaps (first sample)
-Sampled every 5 s for 10 minutes, 2026-10-17 (a Saturday, so crypto books are thin-ish and
-TSLA is out of US hours), `measure/normal_gaps.py`, 99 samples per asset. Max in bp:
+Sampled about every 6 s (a 5 s wait plus the request; the script now waits 10 s) for 10 minutes,
+2026-10-16 22:50–23:00 UTC (a Friday evening in the US, after the stock close, so TSLA is out of
+US hours), `measure/normal_gaps.py`, 99 samples per asset. Max in bp:
 
 | asset | mark–oracle | mid–oracle | spread |
 |---|---|---|---|
@@ -79,8 +80,9 @@ the same transaction (`PythRef.updateAndRead`) and keep `maxAge` to seconds. A r
 nobody updates passes every check with a stale price, so the staleness check matters as much as
 the deviation check.
 
-For stocks, the reference stops at the close while the HL oracle keeps moving. hip3-ops measured
-this on xyz markets: in trading hours the gap to RedStone reached 76 bp (p99 9.6 bp); out of
+For stocks, the reference stops at the close while the HL oracle keeps moving. Our operations
+repo (hip3-ops, not yet public, so these numbers cannot be rerun from here) measured this on xyz
+markets: in trading hours the gap to RedStone reached 76 bp (p99 9.6 bp); out of
 hours it reached 484 bp. A first estimate is 150 bp in trading hours and no deviation check out
 of hours. US trading hours are not yet measured.
 
@@ -122,9 +124,11 @@ minute**. Papertrade's per-side open-interest caps were current OI plus about $1
 times that.
 
 On replay this is the rule that matters. Papertrade's positions earned 9.18 bp of notional on
-average; at $3.3M per minute over the 18 minutes in which they closed, that is at most $55,101,
-against the $130,873 the attacker spent on HL. In this replay, at this incident's cost, the
-attack stops paying.
+average; at $3.3M per minute over the 18 minutes in which they closed, that is about $55,101,
+against the $130,873 the attacker spent on HL. This is a scenario estimate, not a bound: it
+assumes the capped settlements earn the incident's average edge, while an attacker would pick
+the best moments, and it assumes pushes cost what Papertrade's did (shorter pushes may cost
+less; see below). Under those assumptions the attack would not have paid.
 
 Use `ExposureBudget.Rolling`: no stretch of `windowSecs` ever settles more than the cap (after
 a lowering, more than the largest cap in force during that stretch). It
@@ -152,8 +156,10 @@ request does make the push last that long; measure `C` for that window before re
 
 ### Measuring `C` per asset
 Papertrade's per-round costs (`cases/papertrade-20261010/calibrate_cost.py`, against HL's archived
-ETH book at the time) came to 0.27 of what static book depth predicts: the book refills, and the
-move spread to other venues. So, as a first estimate,
+ETH book at the time) came to 0.27 of what static book depth predicts. The archived book is in HL's
+requester-pays S3 bucket (the script's docstring gives the paths) and is not redistributed here, so
+rerunning it needs your own AWS account. Why the ratio is below 1 is a hypothesis, not measured:
+the book refilling, and the move spreading to other venues. So, as a first estimate,
 
     C(10 bp) ~= 0.27 * depth10 * 10 / 10000      cap per minute ~= 0.27 * depth10 / k
 
@@ -174,8 +180,9 @@ which pulls the ratio down for reasons that are not cheap manipulation; read the
 spread per asset, not its low tail, before replacing 0.27.
 
 `measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
-moment. First run, 15 minutes on Saturday 2026-10-17 (US stocks closed, so the xyz books are at
-their weekend depth; re-measure in US hours and on weekdays):
+moment. First run, requested as 15 minutes, 2026-10-16 23:22–23:40 UTC (29 sweeps; a sweep of 14
+assets takes about 8 s on top of the 30 s interval), a Friday evening after the US close, so the xyz
+books are at their out-of-hours depth; re-measure in US hours:
 
 | asset | depth10 p10 | cap per minute (k = 3) |
 |---|---|---|

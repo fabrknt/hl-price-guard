@@ -13,8 +13,8 @@ on the thinner side (`depth10`). Then:
     cap per minute (ExposureBudget.safeCap, k = 3) = cost * 10000 / (10 * 3) = CAL * depth10 / 3
 
 CAL = 0.27, calibrated on Papertrade (cases/papertrade-20261010, calibrate_cost.py): what the
-attacker actually spent per round was 0.27 of what static book depth predicts, because the book
-refills and the move spread to other venues. One incident on one asset: treat it as a first
+attacker actually spent per round was 0.27 of what static book depth predicts (why it is below 1,
+the book refilling or the move spreading to other venues, is not measured). One incident on one asset: treat it as a first
 estimate. The low percentile (p10) of depth is used, since a push picks a thin moment.
 """
 import datetime, json, os, signal, sys, time, urllib.request

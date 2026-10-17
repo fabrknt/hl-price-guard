@@ -3,11 +3,12 @@
 trade.xyz's SK Hynix perp. At 23:00:03.946 UTC the deployer's oracle went from $1,131.40 to
 $954.99 in one update, 2.7 s before the first liquidation. It then stepped down 1% per update to
 $870.12, sat near $870–874 for about 80 s, jumped back to $1,078.70 at 23:02:03.598 and stepped
-up to about $1,198. The liquidations are rebuilt in hip3-ops
-(docs/verification/2026-10-16-skhx-incident.md).
+up to about $1,198. The liquidations were rebuilt in our operations repo, hip3-ops, which is not
+yet public; the oracle series below is all this replay needs.
 
 `skhx-oracle.json`: all 144 `setOracle` updates for SKHX, 22:57:36–23:04:45 UTC, from the public
-explorer blocks (extracted with hip3-ops `web/incident_oracle.py`).
+explorer blocks, s3://hl-mainnet-node-data explorer_blocks (extracted with a hip3-ops script, not
+yet public; the JSON is the complete input).
 
 ## Replay under the jump check (200 bp)
 | stored price to compare with | accepted | accepted below $1,000 |

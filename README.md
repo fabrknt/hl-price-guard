@@ -28,15 +28,15 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
     no stretch of the window settles more than the cap; cap and window change only through
     `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
   - `HLPrecompiles`: raw reads and the two index encodings.
-  - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`), a
-    research launch pool. It uses this library as a git submodule (see Versions).
+  - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`,
+    private for now), a research launch pool. It uses this library as a git submodule (see Versions).
 - `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
   the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key).
 - `docs/c-launch-pool-design.md`: points to Day One, where the launch-pool design now lives.
 - `cases/`: incidents rebuilt from public data. Each is replayed under rules built from this library
   (oracle instead of BBO, deviation tripwire, exposure cap), plus the two-step settlement Day One adds.
   - Papertrade, 2026-10-10: one wallet moved HL's ETH mid and settled 500x positions against it.
-    The Binance prices it is compared with are kept raw (`binance-klines.json`), so it reruns offline.
+    The Binance comparison fetches Binance's public klines; save them once to rerun offline.
   - xyz:SKHX, 2026-07-27: the deployer's oracle fell 15.6% in one update, then stepped down.
 - `measure/`: `normal_gaps.py` samples the gaps the guard checks; `safe_caps.py` turns book
   depth into a per-minute exposure cap per asset (calibrated on Papertrade, one incident: a first
@@ -51,11 +51,11 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
 purpose, never to the latest commit. Day One pins `v0.2.1`.
-- `v0.1.0` (90c3455): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
-- `v0.2.0` (e4eac11): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
+- `v0.1.0` (b596268): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
+- `v0.2.0` (d996453): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
   "never spent", so `reconfigure` skipped the wait.
-- `v0.2.1` (b03e605): the same, with that fix. The version to pin for `Rolling`.
+- `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork

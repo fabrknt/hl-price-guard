@@ -61,7 +61,7 @@ give this: it ignores the block number for precompile calls.
 | settle at the oracle, same moment | $1,738,919 |
 | settle at the next oracle update (two-step) | $1,664,799 |
 | refuse closes with mid–oracle gap over 15 bp | refuses 0 of 228 (gap at close: median 5.8 bp, max 10.2 bp) |
-| cap notional at $3.3M per minute | at most $55,101, against $130,873 spent |
+| cap notional at $3.3M per minute | about $55,101 at the average edge (an estimate, not a bound; docs/safe-limits.md), against $130,873 spent |
 
 (Take = notional x price move, the same formula for every rule. Papertrade's recorded raw PnL is
 about 2.5% lower, and its haircut then keeps about 70%.)
