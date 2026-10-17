@@ -159,7 +159,7 @@ their weekend depth; re-measure in US hours and on weekdays):
 | xyz:SMSN | $0.03M | under $0.01M |
 | xyz:KORU | $0.01M | under $0.01M |
 
-xyz:SKHX carried $376M of open interest that day against a safe settlement rate of about $20K a
+xyz:SKHX carried $376M of open interest that day against a safe settlement rate of about $16K a
 minute. Anything settling against these prices at Papertrade's sizes is far outside the safe
 range.
 
