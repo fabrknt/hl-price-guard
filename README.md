@@ -24,18 +24,24 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - `HLPriceGuard`: returns the oracle and rejects it when the BBO, mark, an independent
     reference or the last stored price disagree beyond set bounds.
   - `PythRef`: Pyth on HyperEVM as the independent reference (it must be updated in the same tx).
-  - `ExposureBudget`: caps notional settled per time window.
+  - `ExposureBudget`: caps notional settled against one price per time window. `Rolling` (use this):
+    no stretch of the window settles more than the cap; cap and window change only through
+    `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
   - `HLPrecompiles`: raw reads and the two index encodings.
   - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`), a
-    research launch pool. It uses this library as a git submodule pinned to one commit.
-- `docs/safe-limits.md`: which price to use, how to set the bounds, and how to size the cap.
+    research launch pool. It uses this library as a git submodule (see Versions).
+- `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
+  the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key).
 - `docs/c-launch-pool-design.md`: points to Day One, where the launch-pool design now lives.
 - `cases/`: incidents rebuilt from public data. Each is replayed under rules built from this library
   (oracle instead of BBO, deviation tripwire, exposure cap), plus the two-step settlement Day One adds.
   - Papertrade, 2026-10-10: one wallet moved HL's ETH mid and settled 500x positions against it.
+    The Binance prices it is compared with are kept raw (`binance-klines.json`), so it reruns offline.
   - xyz:SKHX, 2026-07-27: the deployer's oracle fell 15.6% in one update, then stepped down.
 - `measure/`: `normal_gaps.py` samples the gaps the guard checks; `safe_caps.py` turns book
-  depth into a per-minute exposure cap per asset (calibrated on Papertrade).
+  depth into a per-minute exposure cap per asset (calibrated on Papertrade, one incident: a first
+  estimate). Both save as they go; `safe_caps.py summary OUT.json` re-prints per UTC hour.
+  `us_session_20261019.sh` runs both through the US session on 2026-10-19 (started by launchd).
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
@@ -49,3 +55,6 @@ purpose, never to the latest commit. Day One does not yet: it is pinned to the u
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork
 mode cannot run HyperEVM's custom precompiles, so encodings were checked with `cast call`.
+`ExposureBudget.Rolling` has two fuzz tests (with and without `reconfigure`) that check every
+admitted spend against the cap and window it was admitted under; each fails when the guard it
+covers is removed.

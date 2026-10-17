@@ -62,7 +62,8 @@ TSLA is out of US hours), `measure/normal_gaps.py`, 99 samples per asset. Max in
 | xyz:TSLA | 2.6 | 7.5 | 1.7 |
 
 Ten minutes on a weekend is a first look, not a basis for production bounds: re-measure across
-weekdays, US hours and volatile sessions.
+weekdays, US hours and volatile sessions. A full US session (Monday 2026-10-19) is scheduled with
+`measure/us_session_20261019.sh`, together with the book depth below.
 
 Set each bound well above its normal maximum (2–3x) so normal trading does not trip it, and
 re-measure for every asset you list.
