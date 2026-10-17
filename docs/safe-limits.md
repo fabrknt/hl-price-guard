@@ -165,7 +165,13 @@ episode's cost, is the looser of the two estimates.
 not produce one: HL's archived book has a snapshot only every ~5 s, too sparse to see a sweep's
 impact, and an average price-impact fit over all trades measures something other than what a
 push costs. The next step is to collect real push-and-unwind round trips by single wallets and
-measure what they cost.
+measure what they cost. `measure/round_trips_collect.py` records HL trades (which name both
+wallets), every change of the best bid/offer and the book; `measure/round_trips.py` keeps a narrow
+cohort: a wallet quiet for 10 minutes sweeps one way as taker, moves the mid at least 5 bp, and is
+back to within 5% of flat 20 to 120 s later. Its cost is cash, without fees (not public), against
+the same depth prediction as Papertrade's. Such wallets may be informed, hedged elsewhere or lucky,
+which pulls the ratio down for reasons that are not cheap manipulation; read the strict cohort's
+spread per asset, not its low tail, before replacing 0.27.
 
 `measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
 moment. First run, 15 minutes on Saturday 2026-10-17 (US stocks closed, so the xyz books are at

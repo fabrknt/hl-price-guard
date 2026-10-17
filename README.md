@@ -43,6 +43,10 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   estimate). Both save as they go; `safe_caps.py summary OUT.json` re-prints per UTC hour.
   `session.sh START END OUT` runs both over a UTC window; `.github/workflows/measure-us-session.yml`
   runs it on GitHub through the US session on 2026-10-19 and keeps the results as artifacts.
+  `round_trips_collect.py` records trades (with wallets), best bid/offer and books;
+  `round_trips.py` picks out single-wallet push-and-unwind round trips and compares their cost
+  with the book-depth prediction, to test the Papertrade calibration on more than one incident.
+  `.github/workflows/collect-round-trips.yml` runs both every 6 hours while the repository is public.
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
