@@ -17,7 +17,7 @@ attacker actually spent per round was 0.27 of what static book depth predicts, b
 refills and the move spread to other venues. One incident on one asset: treat it as a first
 estimate. The low percentile (p10) of depth is used, since a push picks a thin moment.
 """
-import datetime, json, os, sys, time, urllib.request
+import datetime, json, os, signal, sys, time, urllib.request
 
 API = "https://api.hyperliquid.xyz/info"
 CAL, K, D_BPS = 0.27, 3, 10
@@ -80,6 +80,10 @@ def summary(samples):
         table({a: [s for s in ss if lo <= s["t"] < hi] for a, ss in samples.items()}, f"{h:%H}:00 UTC")
 
 
+def _stop(*_):
+    raise KeyboardInterrupt
+
+
 def main():
     if len(sys.argv) < 3 or (sys.argv[1] == "summary" and len(sys.argv) != 3):
         sys.exit(__doc__)
@@ -90,6 +94,7 @@ def main():
     assets = sys.argv[3:] or DEFAULT
     samples = {a: [] for a in assets}
     end = time.time() + minutes * 60
+    signal.signal(signal.SIGTERM, _stop)  # session.sh stops a run that overshoots its window
     try:
         while True:
             t = time.time()

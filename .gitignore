@@ -3,3 +3,4 @@ out/
 cache/
 .DS_Store
 cases/papertrade-20261010/binance-klines.json
+__pycache__/

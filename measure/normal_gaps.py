@@ -2,12 +2,15 @@
 
 usage: python3 measure/normal_gaps.py MINUTES OUT.json
 
-OUT.json is rewritten every minute, so a run cut short (network, Ctrl-C) keeps what it has.
-All 15 precompile reads go in one JSON-RPC batch; after a failed sweep the wait doubles, up to 2 minutes.
+OUT.json is rewritten every minute, so a run cut short (network, Ctrl-C, SIGTERM) keeps what it has.
+All 15 precompile reads go in one JSON-RPC batch every 10 s: 90 reads a minute, under the documented
+100 a minute per IP for rpc.hyperliquid.xyz/evm in case a batch counts per read. After a failed sweep
+the wait doubles, up to 2 minutes; failed sweeps are counted in the summary.
 """
-import json, os, sys, time, urllib.request
+import json, os, signal, sys, time, urllib.request
 
 RPC = "https://rpc.hyperliquid.xyz/evm"
+INTERVAL = 10  # seconds between sweeps
 # name: (dex, index, szDecimals)
 ASSETS = {"BTC": (0, 0, 5), "ETH": (0, 1, 4), "SOL": (0, 5, 2), "HYPE": (0, 159, 2), "xyz:TSLA": (1, 1, 3)}
 
@@ -54,12 +57,17 @@ def save(rows, out):
     os.replace(out + ".tmp", out)
 
 
+def _stop(*_):
+    raise KeyboardInterrupt
+
+
 def main():
     if len(sys.argv) != 3:
         sys.exit(__doc__)
     minutes, out = float(sys.argv[1]), sys.argv[2]
     rows, end = [], time.time() + minutes * 60
-    next_save, fails = time.monotonic() + 60, 0
+    next_save, fails, failed = time.monotonic() + 60, 0, 0
+    signal.signal(signal.SIGTERM, _stop)
     try:
         while time.time() < end:
             try:
@@ -67,16 +75,18 @@ def main():
                 fails = 0
             except Exception as e:  # keep going through RPC hiccups, backing off up to 2 min
                 fails += 1
+                failed += 1
                 print("skip:", e, file=sys.stderr)
             if time.monotonic() >= next_save:
                 save(rows, out)
                 next_save = time.monotonic() + 60
-            time.sleep(min(5 * 2 ** fails, 120))
+            time.sleep(min(INTERVAL * 2 ** fails, 120))
     except KeyboardInterrupt:
         print("stopped early", file=sys.stderr)
     save(rows, out)
     if not rows:
         sys.exit("no samples")
+    print(f"sweeps: {len(rows)} ok, {failed} failed")
     for name in ASSETS:
         for k in ("markOracleBps", "midOracleBps", "spreadBps"):
             v = sorted(r[name][k] for r in rows if name in r)
