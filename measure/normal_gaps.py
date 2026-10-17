@@ -1,8 +1,10 @@
 """Sample the normal gaps HLPriceGuard checks, straight from HyperEVM precompiles.
 
 usage: python3 measure/normal_gaps.py MINUTES OUT.json
+
+OUT.json is rewritten every minute, so a run cut short (network, Ctrl-C) keeps what it has.
 """
-import json, sys, time, urllib.request
+import json, os, sys, time, urllib.request
 
 RPC = "https://rpc.hyperliquid.xyz/evm"
 # name: (dex, index, szDecimals)
@@ -33,16 +35,26 @@ def sample():
     return row
 
 
+def save(rows, out):
+    json.dump(rows, open(out + ".tmp", "w"))
+    os.replace(out + ".tmp", out)
+
+
 def main():
     minutes, out = float(sys.argv[1]), sys.argv[2]
     rows, end = [], time.time() + minutes * 60
-    while time.time() < end:
-        try:
-            rows.append(sample())
-        except Exception as e:  # keep going through RPC hiccups
-            print("skip:", e, file=sys.stderr)
-        time.sleep(5)
-    json.dump(rows, open(out, "w"))
+    try:
+        while time.time() < end:
+            try:
+                rows.append(sample())
+            except Exception as e:  # keep going through RPC hiccups
+                print("skip:", e, file=sys.stderr)
+            if len(rows) % 12 == 0:
+                save(rows, out)
+            time.sleep(5)
+    except KeyboardInterrupt:
+        print("stopped early", file=sys.stderr)
+    save(rows, out)
     for name in ASSETS:
         for k in ("markOracleBps", "midOracleBps", "spreadBps"):
             v = sorted(r[name][k] for r in rows)
