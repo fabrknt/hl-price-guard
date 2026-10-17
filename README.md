@@ -42,7 +42,9 @@ Tagged `vX.Y.Z`; apps pin a tag (as a git submodule at that tag) and move to a n
 never to the latest commit.
 - `v0.1.0` (90c3455): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
 - `v0.2.0` (e4eac11): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
-  and `reconfigure` that waits on the last spend.
+  and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
+  "never spent", so `reconfigure` skipped the wait.
+- `v0.2.1` (b03e605): the same, with that fix. The version to pin for `Rolling`.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork
