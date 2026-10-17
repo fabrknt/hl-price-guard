@@ -28,6 +28,7 @@ library ExposureBudget {
     struct Rolling {
         uint64 windowSecs;
         uint192 cap;
+        uint64 lastSpendAt; // the slots forget after one window; reconfigure needs the last spend
         uint256[7] slots; // SLICES + 1; each packs (uint64 epoch << 192 | uint192 amount)
     }
 
@@ -66,6 +67,7 @@ library ExposureBudget {
         uint256 amount = slot >> 192 == e ? uint192(slot) : 0;
         // amount + notional <= cap <= uint192.max; e < 2**64 for any realistic timestamp.
         r.slots[i] = (uint256(uint64(e)) << 192) | (amount + notional);
+        if (notional != 0) r.lastSpendAt = uint64(block.timestamp);
     }
 
     /// Notional counted against the cap right now.
@@ -86,16 +88,10 @@ library ExposureBudget {
             return;
         }
         if (r.windowSecs != 0) {
-            uint256 bs = r.windowSecs / SLICES;
-            uint256 last;
-            bool any;
-            for (uint256 i; i <= SLICES; ++i) {
-                uint256 slot = r.slots[i];
-                if (uint192(slot) != 0 && (!any || slot >> 192 > last)) (last, any) = (slot >> 192, true);
-            }
+            // Wait until the last spend is outside [t - W, t] for both the old and the new window.
             uint256 longer = windowSecs > r.windowSecs ? windowSecs : r.windowSecs;
-            uint256 readyAt = (last + 1) * bs + longer;
-            if (any && block.timestamp < readyAt) revert NotDrained(readyAt);
+            uint256 readyAt = uint256(r.lastSpendAt) + longer + 1;
+            if (r.lastSpendAt != 0 && block.timestamp < readyAt) revert NotDrained(readyAt);
             delete r.slots;
         }
         _configure(r, cap, windowSecs);

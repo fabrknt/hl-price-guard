@@ -365,12 +365,12 @@ contract HLPriceGuardTest is Test {
     }
 
     function test_rollingReconfigure() public {
-        vm.warp(100); // epoch 10, bucket ends at 110
+        vm.warp(100);
         h.spendRolling(CAP, CAP, 60);
         h.reconfigure(CAP / 2, 60); // lowering the cap alone is immediate
-        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 110 + 120));
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 100 + 120 + 1));
         h.reconfigure(CAP, 120);
-        vm.warp(230);
+        vm.warp(221);
         h.reconfigure(CAP, 120);
         h.spendRolling(CAP, CAP, 120);
     }
@@ -425,17 +425,19 @@ contract HLPriceGuardTest is Test {
         assertEq(h.usedRolling(), CAP); // still counted: nothing more until it ages out
         vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BudgetExceeded.selector, CAP, 1, CAP / 2));
         h.spendRolling(1, CAP / 2, 60);
-        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 170));
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 161));
         h.reconfigure(CAP, 60); // raising back waits
     }
 
-    /// Spends mixed with reconfigure calls (caps CAP or CAP/2, windows 60 or 120 s):
-    /// no 60 s stretch ever settles more than CAP, the largest cap used.
+    /// Spends mixed with reconfigure calls (caps CAP or CAP/2, windows 60 or 120 s): at every
+    /// admitted spend, what settled in the window ending there is within the cap it was admitted under.
     function testFuzz_rollingWithReconfigure(uint32[24] memory gaps, uint64[24] memory amounts, uint8[24] memory ops)
         public
     {
         uint256[24] memory ts;
         uint256[24] memory ok;
+        uint256[24] memory caps;
+        uint256[24] memory ws;
         uint256 t = 1_000;
         uint256 cap = CAP;
         uint64 w = 60;
@@ -450,12 +452,25 @@ contract HLPriceGuardTest is Test {
                 continue;
             }
             uint256 a = amounts[i] % (CAP / 1e12) * 1e12;
-            try h.spendRolling(a, cap, w) { ok[i] = a; } catch {}
+            try h.spendRolling(a, cap, w) { (ok[i], caps[i], ws[i]) = (a, cap, w); } catch {}
         }
-        for (uint256 i; i < 24; ++i) {
+        for (uint256 j; j < 24; ++j) {
+            if (ok[j] == 0) continue;
             uint256 sum;
-            for (uint256 j = i; j < 24 && ts[j] <= ts[i] + 60; ++j) sum += ok[j];
-            assertLe(sum, CAP);
+            for (uint256 i; i <= j; ++i) if (ts[i] + ws[j] >= ts[j]) sum += ok[i];
+            assertLe(sum, caps[j]);
         }
+    }
+
+    /// Found by the fuzz test: the slots forget after one window, so widening the window must
+    /// wait on the last spend itself, not on what the slots still remember.
+    function test_rollingWidenWaitsOnForgottenSpend() public {
+        vm.warp(1_035);
+        h.spendRolling(2_200_000e18, CAP, 60);
+        vm.warp(1_108);
+        h.spendRolling(0, CAP, 60); // epoch 110 reuses epoch 103's slot
+        vm.warp(1_121);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 1_035 + 120 + 1));
+        h.reconfigure(CAP / 2, 120);
     }
 }

@@ -125,7 +125,8 @@ average; at $3.3M per minute over the 18 minutes in which they closed, that is a
 against the $130,873 the attacker spent on HL. In this replay, at this incident's cost, the
 attack stops paying.
 
-Use `ExposureBudget.Rolling`: no stretch of `windowSecs` ever settles more than the cap. It
+Use `ExposureBudget.Rolling`: no stretch of `windowSecs` ever settles more than the cap (after
+a lowering, more than the largest cap in force during that stretch). It
 splits the window into 6 slices and counts the current one plus the 6 before it, so it is
 conservative by under one slice (after a full-cap burst on a 60 s window, the next full burst
 waits up to 70 s). The cap and window are fixed on first use: changing either mid-life would let
