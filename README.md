@@ -27,7 +27,7 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - `ExposureBudget`: caps notional settled per time window.
   - `HLPrecompiles`: raw reads and the two index encodings.
   - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`), a
-    research launch pool; it pins a tagged version of this library.
+    research launch pool. It uses this library as a git submodule pinned to one commit.
 - `docs/safe-limits.md`: which price to use, how to set the bounds, and how to size the cap.
 - `docs/c-launch-pool-design.md`: points to Day One, where the launch-pool design now lives.
 - `cases/`: incidents rebuilt from public data. Each is replayed under rules built from this library
