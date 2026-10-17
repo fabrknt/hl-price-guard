@@ -1,0 +1,79 @@
+# Re-measure book depth (safe_caps) and normal gaps (normal_gaps) through a US trading session,
+# on GitHub's runners rather than a local machine. A job may run at most 6 hours, so the session
+# is split in two. GitHub's cron can start late; each part sleeps until its window opens and
+# stops when it closes, and a backup trigger covers a skipped start.
+#
+# Mon 2026-10-19 (US daylight time): 09:25-16:05 ET = 13:25-20:05 UTC = 22:25-05:05 JST.
+#   part 1: 13:25-16:45 UTC, triggered 13:00 (backup 13:15)
+#   part 2: 16:45-20:05 UTC, triggered 16:20 (backup 16:35)
+# The crons match Oct 19 of any year; the job skips any date but 2026-10-19.
+# Manual runs (workflow_dispatch) take their own window, for tests.
+name: measure-us-session
+
+on:
+  schedule:
+    - cron: "0 13 19 10 *"
+    - cron: "15 13 19 10 *"
+    - cron: "20 16 19 10 *"
+    - cron: "35 16 19 10 *"
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Window start, UTC (e.g. 2026-10-17T03:00:00Z)"
+        required: true
+      end:
+        description: "Window end, UTC"
+        required: true
+      label:
+        description: "Artifact label"
+        default: test
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    concurrency:
+      # one run per part; a backup trigger waits, then finds its window closed and skips
+      group: measure-${{ (github.event.schedule == '20 16 19 10 *' || github.event.schedule == '35 16 19 10 *') && 'part2' || (github.event_name == 'schedule' && 'part1') || github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pick the window
+        id: w
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          IN_START: ${{ inputs.start }}
+          IN_END: ${{ inputs.end }}
+          IN_LABEL: ${{ inputs.label }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then
+            echo "start=$IN_START" >> "$GITHUB_OUTPUT"; echo "end=$IN_END" >> "$GITHUB_OUTPUT"
+            echo "label=$IN_LABEL" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$(date -u +%F)" != 2026-10-19 ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          case "$SCHEDULE" in
+            "0 13 19 10 *"|"15 13 19 10 *")
+              echo "start=2026-10-19T13:25:00Z" >> "$GITHUB_OUTPUT"; echo "end=2026-10-19T16:45:00Z" >> "$GITHUB_OUTPUT"
+              echo "label=us-20261019-part1" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "start=2026-10-19T16:45:00Z" >> "$GITHUB_OUTPUT"; echo "end=2026-10-19T20:05:00Z" >> "$GITHUB_OUTPUT"
+              echo "label=us-20261019-part2" >> "$GITHUB_OUTPUT" ;;
+          esac
+      - name: Measure
+        if: steps.w.outputs.skip != '1'
+        env:
+          START: ${{ steps.w.outputs.start }}
+          END: ${{ steps.w.outputs.end }}
+        run: measure/session.sh "$START" "$END" out
+      - name: Keep the results
+        if: always() && steps.w.outputs.skip != '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.w.outputs.label }}-${{ github.run_id }}
+          path: out/
+          retention-days: 90
+          if-no-files-found: warn

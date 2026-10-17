@@ -41,7 +41,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
 - `measure/`: `normal_gaps.py` samples the gaps the guard checks; `safe_caps.py` turns book
   depth into a per-minute exposure cap per asset (calibrated on Papertrade, one incident: a first
   estimate). Both save as they go; `safe_caps.py summary OUT.json` re-prints per UTC hour.
-  `us_session_20261019.sh` runs both through the US session on 2026-10-19 (started by launchd).
+  `session.sh START END OUT` runs both over a UTC window; `.github/workflows/measure-us-session.yml`
+  runs it on GitHub through the US session on 2026-10-19 and keeps the results as artifacts.
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
