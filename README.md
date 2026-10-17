@@ -46,7 +46,16 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   `round_trips_collect.py` records trades (with wallets), best bid/offer and books;
   `round_trips.py` picks out single-wallet push-and-unwind round trips and compares their cost
   with the book-depth prediction, to test the Papertrade calibration on more than one incident.
-  `.github/workflows/collect-round-trips.yml` runs both every 6 hours while the repository is public.
+  `.github/workflows/collect-round-trips.yml` runs both every 6 hours (it skips itself if the
+  repository is private) and keeps the round trips found as artifacts for 30 days.
+  Data files are named by the JST date they were taken; their timestamps are UTC.
+
+## Status
+- Measured so far: one quiet 10-minute sample of normal gaps and one 18-minute sample of book
+  depth (2026-10-16, after the US close). The caps in `docs/safe-limits.md` are first estimates.
+- Running: a full US session (2026-10-19) re-measures both; round trips are collected every
+  6 hours to test the 0.27 calibration, which still rests on one incident.
+- Not done: a cost for pushes shorter than a minute; an audit.
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
