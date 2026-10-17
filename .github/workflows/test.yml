@@ -1,0 +1,43 @@
+# forge test on every push and pull request. A second job checks the precompile mocks against
+# mainnet (test/Live.t.sol: real precompile output over HyperEVM's public RPC, decoded by
+# HLPrecompiles), on push and once a day, since HyperCore can change under an unchanged repo.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
+      - run: forge test -vv
+
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
+      - run: forge test --match-contract Live -vv
+        env:
+          HL_LIVE: "true"

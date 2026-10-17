@@ -51,6 +51,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   Data files are named by the JST date they were taken; their timestamps are UTC.
 
 ## Status
+**Not for production funds.** The library is unaudited and its caps are first estimates from
+little data; use it for research, test deployments and review.
 - Measured so far: one quiet 10-minute sample of normal gaps and one 18-minute sample of book
   depth (2026-10-16, after the US close). The caps in `docs/safe-limits.md` are first estimates.
 - Running: a full US session (2026-10-19) re-measures both; round trips are collected every
@@ -68,7 +70,12 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork
-mode cannot run HyperEVM's custom precompiles, so encodings were checked with `cast call`.
+mode cannot run HyperEVM's custom precompiles. `test/Live.t.sol` checks what the mocks assume against
+mainnet: it fetches real precompile output over the public RPC and decodes it with
+`HLPrecompiles` for BTC, ETH, xyz:TSLA and the L1 block number
+(`HL_LIVE=true forge test --match-contract Live`). Its bounds are loose: it catches a wrong
+encoding or scale, not a market anomaly. CI (`.github/workflows/test.yml`) runs the suite on
+pushes to `main` and pull requests, and the live check then and daily.
 `ExposureBudget.Rolling` has two fuzz tests (with and without `reconfigure`) that check every
 admitted spend against the cap and window it was admitted under; each fails when the guard it
 covers is removed.
