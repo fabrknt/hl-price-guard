@@ -38,8 +38,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   depth into a per-minute exposure cap per asset (calibrated on Papertrade).
 
 ## Versions
-Tagged `vX.Y.Z`; apps pin a tag (as a git submodule at that tag) and move to a new tag on purpose,
-never to the latest commit.
+Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
+purpose, never to the latest commit. Day One does not yet: it is pinned to the untagged `5d78517`.
 - `v0.1.0` (90c3455): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
 - `v0.2.0` (e4eac11): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
