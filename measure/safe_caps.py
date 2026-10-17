@@ -63,25 +63,26 @@ def table(samples, title):
             continue
         d = sorted(min(s["bid"], s["ask"]) for s in ss)
         p10 = d[int(len(d) * 0.1)]
-        print(f"{a:12} {len(d):3} {p10/1e6:11.2f}M {d[len(d)//2]/1e6:9.2f}M {CAL*p10/K/1e6:9.2f}M")
+        few = "  (n < 10: p10 is the minimum)" if len(d) < 10 else ""
+        print(f"{a:12} {len(d):3} {p10/1e6:11.2f}M {d[len(d)//2]/1e6:9.2f}M {CAL*p10/K/1e6:9.2f}M{few}")
 
 
 def summary(samples):
     ts = [s["t"] for ss in samples.values() for s in ss]
     if not ts:
-        print("no samples")
-        return
+        sys.exit("no samples")
     utc = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone.utc)
     table(samples, f"all: {utc(min(ts)):%Y-%m-%d %H:%M}-{utc(max(ts)):%H:%M} UTC")
     hours = sorted({utc(t).replace(minute=0, second=0, microsecond=0) for t in ts})
-    if len(hours) > 1:
-        for h in hours:
-            lo, hi = h.timestamp(), h.timestamp() + 3600
-            print()
-            table({a: [s for s in ss if lo <= s["t"] < hi] for a, ss in samples.items()}, f"{h:%H}:00 UTC")
+    for h in hours:
+        lo, hi = h.timestamp(), h.timestamp() + 3600
+        print()
+        table({a: [s for s in ss if lo <= s["t"] < hi] for a, ss in samples.items()}, f"{h:%H}:00 UTC")
 
 
 def main():
+    if len(sys.argv) < 3 or (sys.argv[1] == "summary" and len(sys.argv) != 3):
+        sys.exit(__doc__)
     if sys.argv[1] == "summary":
         summary(json.load(open(sys.argv[2])))
         return
