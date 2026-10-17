@@ -1,4 +1,4 @@
-# rounds_vs_binance.py output, Binance ETHUSDT 1 s klines fetched 2026-10-17T00:29:52Z
+# python3 -I rounds_vs_binance.py positions.json eth-oracle.json binance-klines.json (sha256 84810c61…)
 close  positions side   mid   oracle  binance  (bp)
 21:39     14    long     8.0    5.6     5.7
 21:41     16    short   16.3   12.7    12.9

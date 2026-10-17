@@ -1,11 +1,13 @@
 """Per round: how far HL's BBO mid, HL's oracle and Binance moved between open and close.
 
-    python3 -I rounds_vs_binance.py positions.json eth-oracle.json
+    python3 -I rounds_vs_binance.py positions.json eth-oracle.json [binance-klines.json]
 
-Binance ETHUSDT 1 s closes come from the public klines API at run time.
+Binance ETHUSDT 1 s closes come from the public klines API. With a third argument, the raw
+responses are read from that file if it exists, or fetched and saved there (with the query
+URLs and fetch time) if it does not, so a rerun reproduces the same numbers.
 All moves are signed so that positive is in the position's favour.
 """
-import bisect, collections, datetime, json, sys, urllib.request
+import bisect, collections, datetime, json, os, sys, time, urllib.request
 
 positions = [p for p in json.load(open(sys.argv[1])) if p["close"] and p["open"]["instrument"] == 1]
 rows = json.load(open(sys.argv[2]))["rows"]
@@ -17,10 +19,17 @@ def oracle(t):
     return px[bisect.bisect_right(ts, t) - 1]
 
 
+CACHE = sys.argv[3] if len(sys.argv) > 3 else None
+cache = json.load(open(CACHE)) if CACHE and os.path.exists(CACHE) else None
+fetched = {"fetched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "responses": {}}
+
+
 def binance(t0, t1):
     url = (f"https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1s"
            f"&startTime={t0 * 1000}&endTime={t1 * 1000}&limit=1000")
-    return {int(k[0]) // 1000: float(k[4]) for k in json.load(urllib.request.urlopen(url, timeout=20))}
+    raw = cache["responses"][url] if cache else json.load(urllib.request.urlopen(url, timeout=20))
+    fetched["responses"][url] = raw
+    return {int(k[0]) // 1000: float(k[4]) for k in raw}
 
 
 rounds = collections.defaultdict(list)
@@ -36,3 +45,6 @@ for minute, ps in sorted(rounds.items()):
     print(f"{datetime.datetime.fromtimestamp(minute * 60, datetime.timezone.utc):%H:%M} {len(ps):6}    {o['side']:5}"
           f" {move(o['entry'], c['exit']):6.1f} {move(oracle(o['t'] + 1), oracle(c['t'] + 1)):6.1f}"
           f" {move(b[o['t']], b[c['t']]):7.1f}")
+
+if CACHE and not cache:
+    json.dump(fetched, open(CACHE, "w"))

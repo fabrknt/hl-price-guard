@@ -37,6 +37,21 @@ contract MockPyth {
 /// External entry points so reverts can be asserted.
 contract Harness {
     using ExposureBudget for ExposureBudget.Window;
+    using ExposureBudget for ExposureBudget.Rolling;
+
+    ExposureBudget.Rolling internal rolling;
+
+    function spendRolling(uint256 notional, uint256 cap, uint64 windowSecs) external {
+        rolling.spend(notional, cap, windowSecs);
+    }
+
+    function usedRolling() external view returns (uint256) {
+        return rolling.used();
+    }
+
+    function reconfigure(uint256 cap, uint64 windowSecs) external {
+        rolling.reconfigure(cap, windowSecs);
+    }
 
     ExposureBudget.Window public window;
 
@@ -270,5 +285,177 @@ contract HLPriceGuardTest is Test {
         h.spend(2_000_000e18, cap, 60);
         vm.warp(block.timestamp + 60);
         h.spend(2_000_000e18, cap, 60); // new window
+    }
+
+    // ---- Rolling: no stretch of windowSecs settles more than cap ----
+
+    uint256 constant CAP = 3_000_000e18;
+
+    function _exceeded(uint256 used, uint256 req) internal {
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BudgetExceeded.selector, used, req, CAP));
+    }
+
+    function test_rollingClosesTheFixedWindowGap() public {
+        // The fixed window lets 2 x cap through across a reset: cap at t=659, cap again at t=660.
+        vm.warp(600);
+        h.spend(1, CAP, 60); // opens a window at 600
+        vm.warp(659);
+        h.spend(CAP - 1, CAP, 60);
+        vm.warp(660);
+        h.spend(CAP, CAP, 60);
+        // Rolling refuses the same pattern.
+        vm.warp(659);
+        h.spendRolling(CAP, CAP, 60);
+        vm.warp(660);
+        _exceeded(CAP, CAP);
+        h.spendRolling(CAP, CAP, 60);
+    }
+
+    function test_rollingAtEarlyTimestamps() public {
+        vm.warp(5); // epoch 0, below SLICES: the lower bound clamps instead of underflowing
+        h.spendRolling(CAP, CAP, 60);
+        vm.warp(59);
+        _exceeded(CAP, 1);
+        h.spendRolling(1, CAP, 60);
+    }
+
+    function test_rollingExactBoundary() public {
+        vm.warp(600); // epoch 60
+        h.spendRolling(CAP, CAP, 60);
+        vm.warp(660); // epoch 66 still counts epoch 60
+        _exceeded(CAP, CAP);
+        h.spendRolling(CAP, CAP, 60);
+        vm.warp(670); // epoch 67 reuses slot 60 % 7 and drops it
+        h.spendRolling(CAP, CAP, 60);
+        assertEq(h.usedRolling(), CAP);
+    }
+
+    function test_rollingSpreadsAcrossSlices() public {
+        for (uint256 t = 600; t < 660; t += 10) {
+            vm.warp(t);
+            h.spendRolling(CAP / 6, CAP, 60);
+        }
+        vm.warp(665);
+        _exceeded(CAP, 1); // 600's bucket is still inside [epoch 60, 66]
+        h.spendRolling(1, CAP, 60);
+        vm.warp(670);
+        h.spendRolling(CAP / 6, CAP, 60);
+    }
+
+    function test_rollingSparseGapsAndSameBlock() public {
+        vm.warp(1_000);
+        h.spendRolling(CAP / 2, CAP, 60);
+        h.spendRolling(CAP / 2, CAP, 60); // same block, same slot
+        _exceeded(CAP, 1);
+        h.spendRolling(1, CAP, 60);
+        vm.warp(1_000 + 7 * 3600); // long gap: stale slots are ignored by epoch
+        assertEq(h.usedRolling(), 0);
+        h.spendRolling(CAP, CAP, 60);
+    }
+
+    function test_rollingRejectsConfigChange() public {
+        vm.warp(100);
+        h.spendRolling(CAP, CAP, 60);
+        vm.warp(110);
+        // Codex's counterexample: widening the window to 120 s would hide the first spend.
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.ConfigChanged.selector, CAP, 60));
+        h.spendRolling(CAP, CAP, 120);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.ConfigChanged.selector, CAP, 60));
+        h.spendRolling(CAP, 2 * CAP, 60);
+    }
+
+    function test_rollingReconfigure() public {
+        vm.warp(100); // epoch 10, bucket ends at 110
+        h.spendRolling(CAP, CAP, 60);
+        h.reconfigure(CAP / 2, 60); // lowering the cap alone is immediate
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 110 + 120));
+        h.reconfigure(CAP, 120);
+        vm.warp(230);
+        h.reconfigure(CAP, 120);
+        h.spendRolling(CAP, CAP, 120);
+    }
+
+    function test_rollingBounds() public {
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BadWindow.selector, 5));
+        h.spendRolling(1, CAP, 5);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BadWindow.selector, 61));
+        h.spendRolling(1, CAP, 61);
+        uint256 big = uint256(type(uint192).max) + 1;
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.CapTooLarge.selector, big));
+        h.spendRolling(1, big, 60);
+        vm.warp(100);
+        h.spendRolling(1, CAP, 60);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BudgetExceeded.selector, 1, type(uint256).max, CAP));
+        h.spendRolling(type(uint256).max, CAP, 60); // no overflow in the comparison
+    }
+
+    /// Any order of spends: no 60 s stretch ever settles more than the cap.
+    function testFuzz_rollingNeverExceedsCap(uint32[24] memory gaps, uint64[24] memory amounts) public {
+        uint256[24] memory ts;
+        uint256[24] memory ok;
+        uint256 t = 1_000;
+        for (uint256 i; i < 24; ++i) {
+            t += gaps[i] % 25;
+            vm.warp(t);
+            uint256 a = amounts[i] % (CAP / 1e12) * 1e12;
+            try h.spendRolling(a, CAP, 60) { ok[i] = a; } catch {}
+            ts[i] = t;
+        }
+        for (uint256 i; i < 24; ++i) {
+            uint256 sum;
+            for (uint256 j = i; j < 24 && ts[j] <= ts[i] + 60; ++j) sum += ok[j];
+            assertLe(sum, CAP);
+        }
+    }
+
+    function test_rollingReconfigureValidatesFirst() public {
+        vm.warp(100);
+        h.spendRolling(CAP, CAP, 60);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BadWindow.selector, 61));
+        h.reconfigure(CAP, 61);
+        uint256 big = uint256(type(uint192).max) + 1;
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.CapTooLarge.selector, big));
+        h.reconfigure(big, 60);
+    }
+
+    function test_rollingLowerCapIsNotRetroactive() public {
+        vm.warp(100);
+        h.spendRolling(CAP, CAP, 60);
+        h.reconfigure(CAP / 2, 60);
+        assertEq(h.usedRolling(), CAP); // still counted: nothing more until it ages out
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.BudgetExceeded.selector, CAP, 1, CAP / 2));
+        h.spendRolling(1, CAP / 2, 60);
+        vm.expectRevert(abi.encodeWithSelector(ExposureBudget.NotDrained.selector, 170));
+        h.reconfigure(CAP, 60); // raising back waits
+    }
+
+    /// Spends mixed with reconfigure calls (caps CAP or CAP/2, windows 60 or 120 s):
+    /// no 60 s stretch ever settles more than CAP, the largest cap used.
+    function testFuzz_rollingWithReconfigure(uint32[24] memory gaps, uint64[24] memory amounts, uint8[24] memory ops)
+        public
+    {
+        uint256[24] memory ts;
+        uint256[24] memory ok;
+        uint256 t = 1_000;
+        uint256 cap = CAP;
+        uint64 w = 60;
+        for (uint256 i; i < 24; ++i) {
+            t += gaps[i] % 40;
+            vm.warp(t);
+            ts[i] = t;
+            if (ops[i] % 4 == 0) {
+                uint256 nc = ops[i] & 16 == 0 ? CAP : CAP / 2;
+                uint64 nw = ops[i] & 32 == 0 ? 60 : 120;
+                try h.reconfigure(nc, nw) { (cap, w) = (nc, nw); } catch {}
+                continue;
+            }
+            uint256 a = amounts[i] % (CAP / 1e12) * 1e12;
+            try h.spendRolling(a, cap, w) { ok[i] = a; } catch {}
+        }
+        for (uint256 i; i < 24; ++i) {
+            uint256 sum;
+            for (uint256 j = i; j < 24 && ts[j] <= ts[i] + 60; ++j) sum += ok[j];
+            assertLe(sum, CAP);
+        }
     }
 }

@@ -122,10 +122,19 @@ times that.
 
 On replay this is the rule that matters. Papertrade's positions earned 9.18 bp of notional on
 average; at $3.3M per minute over the 18 minutes in which they closed, that is at most $55,101,
-against the $130,873 the attacker spent on HL. The attack stops paying.
+against the $130,873 the attacker spent on HL. In this replay, at this incident's cost, the
+attack stops paying.
 
-`ExposureBudget.spend` enforces the cap per fixed window. Because the window resets, up to
-`2 * cap` can settle across a boundary; size the cap with that in mind.
+Use `ExposureBudget.Rolling`: no stretch of `windowSecs` ever settles more than the cap. It
+splits the window into 6 slices and counts the current one plus the 6 before it, so it is
+conservative by under one slice (after a full-cap burst on a 60 s window, the next full burst
+waits up to 70 s). The cap and window are fixed on first use: changing either mid-life would let
+more than the cap through, so `reconfigure` lowers the cap at once for new spends (what already
+settled stays counted, so a stretch spanning the change is bounded by the old, higher cap) and
+otherwise waits until nothing settled under the old settings is inside either window.
+
+The older `ExposureBudget.Window` resets at fixed times, so up to `2 * cap` can settle across a
+reset, halving the margin `k`. It stays for existing users.
 
 ### Measuring `C` per asset
 Papertrade's per-round costs (`cases/papertrade-20261010/calibrate_cost.py`, against HL's archived
@@ -171,6 +180,6 @@ range.
 - [ ] HIP-3 assets also have an independent reference updated in the same transaction, and a
       jump check.
 - [ ] Notional settled per window is capped at `C * 10000 / (d * k)`, with `C` measured for the
-      asset.
+      asset, using `ExposureBudget.Rolling` (a fixed window lets `2 * cap` through).
 - [ ] What happens on a rejection is decided: revert, pause the market, or let only
       position-reducing actions through.
