@@ -9,7 +9,10 @@
 #   part 1: 13:25-16:45 UTC, triggered 12:55, 13:05, 13:15
 #   part 2: 16:45-20:05 UTC, triggered 16:10, 16:20, 16:35
 # The crons match Oct 19 of any year; the job skips any date but 2026-10-19.
-# Manual runs (workflow_dispatch) take their own window, for tests.
+# Manual runs (workflow_dispatch) take their own window. This repository's crons have started
+# hours late, so each part is also dispatched on time by dispatch-at.yml with label
+# us-20261019-part1/-part2; a dispatch with that label shares the part's concurrency group, so
+# whichever starts first measures and the other waits, finds the window closed and skips.
 name: measure-us-session
 
 on:
@@ -40,9 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     concurrency:
-      # one run per part; a later trigger waits, then finds its window closed and skips
-      group: measure-${{ (github.event.schedule == '10 16 19 10 *' || github.event.schedule == '20 16 19 10 *' || github.event.schedule == '35 16 19 10 *') && 'part2' || (github.event_name == 'schedule' && 'part1') || github.run_id }}
+      # one run per label (scheduled parts map to their label); a later trigger waits, then finds its
+      # window closed and skips. Test dispatches share a label and so run one at a time, on purpose:
+      # two at once would double the RPC rate.
+      group: measure-${{ github.event_name == 'workflow_dispatch' && inputs.label || ((github.event.schedule == '10 16 19 10 *' || github.event.schedule == '20 16 19 10 *' || github.event.schedule == '35 16 19 10 *') && 'us-20261019-part2' || 'us-20261019-part1') }}
       cancel-in-progress: false
+      queue: max # keep every pending trigger; by default a newer one would cancel a pending dispatch
     steps:
       - uses: actions/checkout@v4
       - name: Pick the window
