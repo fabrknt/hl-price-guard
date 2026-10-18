@@ -3,6 +3,8 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {HLPrecompiles} from "../src/HLPrecompiles.sol";
+import {HLPriceGuard} from "../src/HLPriceGuard.sol";
+import {PythRef, IPyth} from "../src/PythRef.sol";
 
 /// Answers each input with the bytes recorded for it, so the library decodes real mainnet output.
 contract ReplayPrecompile {
@@ -39,6 +41,14 @@ contract Reader {
     function l1BlockNumber() external view returns (uint64) {
         return HLPrecompiles.l1BlockNumber();
     }
+
+    function pyth(bytes32 id) external view returns (HLPriceGuard.Ref memory) {
+        return PythRef.read(IPyth(PythRef.HYPEREVM_PYTH), id, 0, 0);
+    }
+
+    function pythFee() external view returns (uint256) {
+        return IPyth(PythRef.HYPEREVM_PYTH).getUpdateFee(new bytes[](0));
+    }
 }
 
 /// Mocks in HLPriceGuard.t.sol return what we believe the precompiles return. This checks that belief
@@ -50,12 +60,14 @@ contract LiveTest is Test {
 
     function setUp() public {
         vm.skip(!vm.envOr("HL_LIVE", false));
+        vm.warp(vm.unixTime() / 1000); // real time, so ages are real
         ReplayPrecompile code = new ReplayPrecompile();
         vm.etch(HLPrecompiles.PERP_ASSET_INFO, address(code).code);
         vm.etch(HLPrecompiles.ORACLE_PX, address(code).code);
         vm.etch(HLPrecompiles.MARK_PX, address(code).code);
         vm.etch(HLPrecompiles.BBO, address(code).code);
         vm.etch(HLPrecompiles.L1_BLOCK_NUMBER, address(code).code);
+        vm.etch(PythRef.HYPEREVM_PYTH, address(code).code);
         reader = new Reader();
     }
 
@@ -109,6 +121,26 @@ contract LiveTest is Test {
     /// xyz:TSLA as dex 1, index 1 with 3 size decimals; if trade.xyz relists it, update this test.
     function test_live_xyzTSLA() public {
         _check("xyz:TSLA", 1, 1, 3, 0.2e18);
+    }
+
+    /// Pyth on HyperEVM: the Price struct layout and exponent handling in PythRef.read, and that
+    /// getUpdateFee has the ABI IPyth declares. The stored price is often hours or days old (callers
+    /// must push an update), so it is compared with HL's ETH oracle only to within 50%: enough to catch
+    /// a wrong layout or exponent, which is off by orders of magnitude.
+    function test_live_pythETH() public {
+        bytes32 id = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace; // ETH/USD
+        _record(PythRef.HYPEREVM_PYTH, abi.encodeCall(IPyth.getPriceUnsafe, (id)));
+        _record(PythRef.HYPEREVM_PYTH, abi.encodeCall(IPyth.getUpdateFee, (new bytes[](0))));
+        HLPriceGuard.Ref memory r = reader.pyth(id);
+        emit log_named_decimal_uint("Pyth ETH/USD", r.price, 18);
+        emit log_named_uint("Pyth ETH/USD age (s)", block.timestamp > r.updatedAt ? block.timestamp - r.updatedAt : 0);
+        assertGt(r.updatedAt, 1_700_000_000, "publishTime too old to be real");
+        assertLe(r.updatedAt, vm.unixTime() / 1000 + 60, "publishTime in the future");
+        assertEq(reader.pythFee(), 0, "fee for no updates");
+
+        uint32 perp = HLPrecompiles.perpIndex(0, 1);
+        _record(HLPrecompiles.ORACLE_PX, perp);
+        assertApproxEqRel(r.price, reader.oracle(perp, 4), 0.5e18, "Pyth vs HL oracle");
     }
 
     function test_live_l1BlockNumber() public {

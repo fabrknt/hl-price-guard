@@ -70,15 +70,24 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork
-mode cannot run HyperEVM's custom precompiles. `test/Live.t.sol` checks what the mocks assume against
-mainnet: it fetches real precompile output over the public RPC and decodes it with
-`HLPrecompiles` for BTC, ETH, xyz:TSLA and the L1 block number
-(`HL_LIVE=true forge test --match-contract Live`). Its bounds are loose: it catches a wrong
-encoding or scale, not a market anomaly. CI (`.github/workflows/test.yml`) runs the suite on
-pushes to `main` and pull requests, and the live check then and daily.
-`ExposureBudget.Rolling` has two fuzz tests (with and without `reconfigure`) that check every
-admitted spend against the cap and window it was admitted under; each fails when the guard it
-covers is removed.
+mode cannot run HyperEVM's custom precompiles. `test/Live.t.sol` checks what the mocks assume
+against mainnet: it fetches real precompile output over the public RPC and decodes it with
+`HLPrecompiles` for BTC, ETH, xyz:TSLA and the L1 block number, and reads HyperEVM's Pyth
+through `PythRef` (`HL_LIVE=true forge test --match-contract Live`). Its bounds are loose: it
+catches a wrong encoding or scale, not a market anomaly. CI (`.github/workflows/test.yml`) runs
+the suite on pushes to `main` and pull requests, and the live check then and daily.
+- `test/HLPriceGuard.t.sol`: each check against mainnet values and the two incidents.
+  `ExposureBudget.Rolling` has two fuzz tests (with and without `reconfigure`) that check every
+  admitted spend against the cap and window it was admitted under.
+- `test/Properties.t.sol`: fuzz tests that `check` never passes a price outside an enabled bound
+  and never reports a breach within one, that `diffBps` rounds up, and that the jump latch moves
+  its anchor only on an accepted read; `PythRef.updateAndRead` paying the fee and reading the update.
+- `test/Integration.t.sol`: an example settlement contract wiring Pyth, the tripwires, the latch
+  and a rolling cap the way docs/safe-limits.md recommends, run through Papertrade- and
+  SKHX-like moves. A starting point for apps, not part of the library.
+- Each fuzz test was shown to fail when the check it covers is removed or weakened.
+- Not covered: the library running on HyperEVM itself (it runs locally; only what the precompiles
+  and Pyth return is fetched from HyperEVM), and pushes shorter than a minute.
 
 ## License
 Apache-2.0 (see `LICENSE`). Not audited.
