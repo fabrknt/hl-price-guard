@@ -49,6 +49,7 @@ library HLPriceGuard {
     }
 
     error PriceRejected(Breach reason, uint256 observedBps, uint256 limitBps);
+    error NoPrice(uint32 perp);
 
     function quote(Asset memory a) internal view returns (Quote memory q) {
         uint32 perp = HLPrecompiles.perpIndex(a.dex, a.index);
@@ -123,6 +124,34 @@ library HLPriceGuard {
     function rearm(JumpLatch storage l, uint256 oraclePx) internal {
         l.anchor = oraclePx;
         l.anchorAt = uint64(block.timestamp);
+    }
+
+    /// The oracle alone, with no tripwires, reverting when it is 0. The raw reads in HLPrecompiles
+    /// return 0 as a price. Prefer `read`; this is for reads that must not be blocked by a wide book.
+    /// It is a price at the moment of the call: when a price at a set time decides who is paid, the
+    /// caller can choose whether and when to call, so take that price from an observation nobody
+    /// chooses (e.g. Pyth's parsePriceFeedUpdatesUnique, the first update after the time).
+    function oracleOnly(Asset memory a) internal view returns (uint256 px) {
+        uint32 perp = HLPrecompiles.perpIndex(a.dex, a.index);
+        px = HLPrecompiles.oracle(perp, a.szDecimals);
+        if (px == 0) revert NoPrice(perp);
+    }
+
+    /// For liquidations: of the oracle and the mark, the one that favours the position: the higher
+    /// for a long (or for collateral that is lent against), the lower for a short. A move against
+    /// the position counts only once both feeds show it: one feed moving alone liquidates no one,
+    /// and a real move that one feed has not caught up with waits for it, which can leave a debt.
+    /// No tripwires, so a wide or empty book does not hold a liquidation back; but the mark follows
+    /// the book, so pushing the book the position's way does, for as long as the push is held.
+    /// Whoever can move both the oracle and the mark (a HIP-3 deployer, or a push that reached the
+    /// oracle) can liquidate at that price. See docs/safe-limits.md section 5. Reverts when either
+    /// price is 0.
+    function lenientPrice(Asset memory a, bool long) internal view returns (uint256) {
+        uint32 perp = HLPrecompiles.perpIndex(a.dex, a.index);
+        uint256 o = HLPrecompiles.oracle(perp, a.szDecimals);
+        uint256 m = HLPrecompiles.mark(perp, a.szDecimals);
+        if (o == 0 || m == 0) revert NoPrice(perp);
+        return long ? (o > m ? o : m) : (o < m ? o : m);
     }
 
     /// The oracle price, or a revert naming the check that failed.

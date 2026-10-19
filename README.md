@@ -23,7 +23,10 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
 - `src/`: a Solidity library to read HL prices safely.
   - `HLPriceGuard`: returns the oracle and rejects it when the BBO, mark, an independent
     reference or the last stored price disagree beyond set bounds.
-  - `PythRef`: Pyth on HyperEVM as the independent reference (it must be updated in the same tx).
+    `lenientPrice` gives liquidations the oracle or the mark, whichever favours the position, and
+    `oracleOnly` the oracle with no tripwires; both revert on a 0 price (docs/safe-limits.md §5).
+  - `PythRef`: Pyth on HyperEVM as the independent reference (it must be updated in the same tx,
+    with update data from Pyth's Hermes, which needs an API key).
   - `ExposureBudget`: caps notional settled against one price per time window. `Rolling` (use this):
     no stretch of the window settles more than the cap; cap and window change only through
     `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
@@ -31,7 +34,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`,
     private for now), a research launch pool. It uses this library as a git submodule (see Versions).
 - `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
-  the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key).
+  the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key); then
+  liquidations, prices at a set time and testnet, learned from apps built on the library.
 - `docs/c-launch-pool-design.md`: points to Day One, where the launch-pool design now lives.
 - `cases/`: incidents rebuilt from public data. Each is replayed under rules built from this library
   (oracle instead of BBO, deviation tripwire, exposure cap), plus the two-step settlement Day One adds.
@@ -67,6 +71,8 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
   "never spent", so `reconfigure` skipped the wait.
 - `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
+- Untagged on `main` since `v0.2.1`: `szDecimals` over 6 reverts (`BadSzDecimals`; it used to
+  mis-scale, and overflow from 46); `lenientPrice`, `oracleOnly` and `NoPrice`. Not tagged yet.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork
@@ -81,7 +87,8 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
   admitted spend against the cap and window it was admitted under.
 - `test/Properties.t.sol`: fuzz tests that `check` never passes a price outside an enabled bound
   and never reports a breach within one, that `diffBps` rounds up, and that the jump latch moves
-  its anchor only on an accepted read; `PythRef.updateAndRead` paying the fee and reading the update.
+  its anchor only on an accepted read, that `lenientPrice` returns one of the two feeds and the one
+  on the position's side; `PythRef.updateAndRead` paying the fee and reading the update.
 - `test/Integration.t.sol`: an example settlement contract wiring Pyth, the tripwires, the latch
   and a rolling cap the way docs/safe-limits.md recommends, run through Papertrade- and
   SKHX-like moves. A starting point for apps, not part of the library.

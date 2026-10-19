@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {HLPriceGuard} from "../src/HLPriceGuard.sol";
 import {PythRef, IPyth} from "../src/PythRef.sol";
+import {HLPrecompiles} from "../src/HLPrecompiles.sol";
+import {MockPrecompile, Harness} from "./HLPriceGuard.t.sol";
 
 /// Pyth with fees: charges `feePerUpdate` per update and requires exactly that as msg.value.
 contract FeePyth {
@@ -141,6 +143,28 @@ contract PropertiesTest is Test {
                 assertEq(anchor, before, "rejected read leaves the anchor");
             }
         }
+    }
+
+    // ---- lenientPrice: one of the two prices, the one on the position's side ----
+
+    function testFuzz_lenientPriceIsTheFavourableFeed(uint64 o, uint64 m, bool long) public {
+        address mock = address(new MockPrecompile());
+        vm.etch(HLPrecompiles.ORACLE_PX, mock.code);
+        vm.etch(HLPrecompiles.MARK_PX, mock.code);
+        MockPrecompile(HLPrecompiles.ORACLE_PX).set(1, abi.encode(o));
+        MockPrecompile(HLPrecompiles.MARK_PX).set(1, abi.encode(m));
+        Harness h = new Harness();
+        HLPriceGuard.Asset memory a = HLPriceGuard.Asset(0, 1, 4);
+        if (o == 0 || m == 0) {
+            vm.expectRevert(abi.encodeWithSelector(HLPriceGuard.NoPrice.selector, uint32(1)));
+            h.lenientPrice(a, long);
+            return;
+        }
+        uint256 px = h.lenientPrice(a, long);
+        (uint256 o18, uint256 m18) = (uint256(o) * 1e16, uint256(m) * 1e16);
+        assertTrue(px == o18 || px == m18, "one of the two feeds");
+        if (long) assertTrue(px >= o18 && px >= m18, "long: no lower than either");
+        else assertTrue(px <= o18 && px <= m18, "short: no higher than either");
     }
 
     // ---- PythRef.updateAndRead ----

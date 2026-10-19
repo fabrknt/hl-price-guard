@@ -80,6 +80,11 @@ the same transaction (`PythRef.updateAndRead`) and keep `maxAge` to seconds. A r
 nobody updates passes every check with a stale price, so the staleness check matters as much as
 the deviation check.
 
+The update data comes from Pyth's Hermes service, which needs an API key: on 2026-10-19 Hermes
+and every keyless mirror we tried answered 401. Budget for a key before relying on `PythRef`.
+On HyperEVM testnet Pyth is at `0x2880aB155794e7179c9eE2e38200202908C17B43` and the update fee
+was 0.
+
 For stocks, the reference stops at the close while the HL oracle keeps moving. Our operations
 repo (hip3-ops, not yet public, so these numbers cannot be rerun from here) measured this on xyz
 markets: in trading hours the gap to RedStone reached 76 bp (p99 9.6 bp); out of
@@ -213,7 +218,50 @@ only while a fresh independent reference agrees with it (section 3); when none c
 for stocks out of hours, pause price-sensitive settlement or fall back to an explicitly governed
 rule. The cap then limits only what a book push adds on top.
 
-## 5. Checklist
+## 5. Liquidations, prices at a set time, testnet
+Learned from apps built on this library (psyto/hyperevm-lend, psyto/hyperevm-perp and others).
+
+**Liquidations: behind the checks or not.** Both choices cost something.
+- Behind `read`: a pushed or one-sided book stops liquidations while it lasts. If the position
+  keeps losing meanwhile, a late liquidation can leave a debt (a lending market, or a perp that
+  pays a liquidation bonus).
+- Outside the checks, with `lenientPrice`: of the oracle and the mark, the one that favours the
+  position (the higher for a long or for collateral, the lower for a short). A move against the
+  position counts only once both feeds show it, so one feed moving alone liquidates no one, and
+  a wide or empty book does not block it. But a real move that one feed lags also waits, and the
+  mark follows the book: the position's owner (or anyone) can hold a liquidation back by pushing
+  the book its way, for as long as they pay to hold the push. Either can leave a debt. And
+  whoever can move both feeds can liquidate at their price: a HIP-3 deployer, or a push that
+  reaches the oracle (it did for ETH, section 1).
+- Day One keeps liquidations behind the checks: its losses stop at the margin, so waiting leaves
+  no debt. hyperevm-lend and hyperevm-perp use the lenient price, although there a late
+  liquidation can lose more than the collateral and the lenders or the pool pay for it. Neither
+  path is free of delay. Section 4's push cost says what moving a price for a minute costs, not
+  how long someone will keep paying to hold off a liquidation, so it gives no margin bound; the
+  margin has to cover a stress move chosen for the asset plus the liquidation delay, and we have
+  not measured either. Neither has a jump latch on that path; on HIP-3 add one, or the
+  deployer's key is the liquidation price.
+
+**Prices at a set time.** `read`, `oracleOnly` and `lenientPrice` return the price at the moment
+of the call, and the caller picks that moment. When a price at a set time decides who gets paid
+(an expiry, a race, a knock-out), anyone who may call can wait for a better block, or not call at
+all. Take that price from an observation no one chooses, such as Pyth's
+`parsePriceFeedUpdatesUnique` (the first update after the time), which anyone can submit later.
+
+**Raw reads return 0.** `HLPrecompiles.oracle` and `mark` return 0 as a price. `read` rejects a
+0 oracle always, and a 0 mark only through the mark–oracle bound (with that bound at 0 it ignores
+the mark). `oracleOnly` reverts with `NoPrice` on a 0 oracle, `lenientPrice` on either. Code that
+reads the precompiles directly must check for 0 itself.
+
+**Testnet prices are not usable for the checks.** On HyperEVM testnet the HYPE perp's mark sat
+far from its oracle: 2,797 bp on 2026-10-18 (oracle 40.48, mark 51.80, book 42.5 to 58.5) and
+2,678 bp on 2026-10-19, while BTC (index 3) was within 9 bp. HyperCore's lending reserve
+(`0x812`) priced HYPE at the mark, not the oracle. Test the checks on BTC, or with bounds set to 0.
+
+**Spot.** This library reads perps only. `0x80e` also answers for spot, with the order asset ID
+`10000 + spot index` (seen on testnet in psyto/hyperevm-amm); `bboIndex` does not produce it.
+
+## 6. Checklist
 - [ ] Settlement, liquidation and minting read `0x807`, not `0x80e`.
 - [ ] HIP-3 assets use both encodings: `dex * 10000 + i` for `0x806`/`0x807`/`0x80a`,
       `100000 + dex * 10000 + i` for `0x80e`.
@@ -227,3 +275,9 @@ rule. The cap then limits only what a book push adds on top.
       measured for that window.
 - [ ] What happens on a rejection is decided: revert, pause the market, or let only
       position-reducing actions through.
+- [ ] Liquidations are either behind the checks or on `lenientPrice`, chosen for whether a late
+      liquidation can leave a debt (section 5); on HIP-3, not on the deployer's oracle alone.
+- [ ] A price at a set time comes from an observation no caller chooses, not from a read at the
+      time of the call.
+- [ ] Every direct `HLPrecompiles` read checks for 0, and `szDecimals` is at most 6.
+- [ ] A Hermes API key is arranged before `PythRef` is relied on.

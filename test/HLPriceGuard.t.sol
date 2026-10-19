@@ -63,6 +63,14 @@ contract Harness {
         return HLPriceGuard.read(a, b, r);
     }
 
+    function oracleOnly(HLPriceGuard.Asset memory a) external view returns (uint256) {
+        return HLPriceGuard.oracleOnly(a);
+    }
+
+    function lenientPrice(HLPriceGuard.Asset memory a, bool long) external view returns (uint256) {
+        return HLPriceGuard.lenientPrice(a, long);
+    }
+
     function pyth(address p, uint256 maxAge, uint16 maxConfBps) external view returns (HLPriceGuard.Ref memory) {
         return PythRef.read(IPyth(p), bytes32(0), maxAge, maxConfBps);
     }
@@ -201,6 +209,40 @@ contract HLPriceGuardTest is Test {
         a.szDecimals = 46; // where 10 ** (12 + szDecimals) would overflow the multiply
         vm.expectRevert(abi.encodeWithSelector(HLPrecompiles.BadSzDecimals.selector, uint8(46)));
         h.read(a, bounds, none);
+    }
+
+    function test_lenientPriceFavoursThePosition() public {
+        setEth(242723, 243500, 230000, 260000); // mark 32 bp above oracle; a book read() rejects
+        assertEq(h.lenientPrice(eth, true), 2435e18, "long: the higher");
+        assertEq(h.lenientPrice(eth, false), 2427.23e18, "short: the lower");
+        setEth(242723, 242000, 0, 0); // mark below, no book at all
+        assertEq(h.lenientPrice(eth, true), 2427.23e18);
+        assertEq(h.lenientPrice(eth, false), 2420e18);
+    }
+
+    function test_zeroPriceReverts() public {
+        setEth(0, 242612, 242630, 242640);
+        vm.expectRevert(abi.encodeWithSelector(HLPriceGuard.NoPrice.selector, uint32(1)));
+        h.lenientPrice(eth, true);
+        vm.expectRevert(abi.encodeWithSelector(HLPriceGuard.NoPrice.selector, uint32(1)));
+        h.oracleOnly(eth);
+        setEth(242723, 0, 242630, 242640);
+        vm.expectRevert(abi.encodeWithSelector(HLPriceGuard.NoPrice.selector, uint32(1)));
+        h.lenientPrice(eth, false);
+        assertEq(h.oracleOnly(eth), 2427.23e18, "the mark does not matter to oracleOnly");
+        setEth(242723, 242612, 0, 0);
+        assertEq(h.oracleOnly(eth), 2427.23e18, "nor does the book");
+    }
+
+    /// read() returns the oracle; a 0 mark is caught only by the mark-oracle bound.
+    function test_readWithZeroMark() public {
+        setEth(242723, 0, 242630, 242640);
+        (HLPriceGuard.Breach r, uint256 v) = rejectReason(none);
+        assertEq(uint8(r), uint8(HLPriceGuard.Breach.MarkOracle));
+        assertEq(v, 10_000);
+        HLPriceGuard.Bounds memory noMark = bounds;
+        noMark.maxMarkOracleBps = 0;
+        assertEq(h.read(eth, noMark, none), 2427.23e18);
     }
 
     function test_zeroBoundsDisableChecks() public {
