@@ -12,6 +12,7 @@ library HLPrecompiles {
     address internal constant BBO = 0x000000000000000000000000000000000000080e;
 
     error PrecompileFailed(address precompile, uint32 index);
+    error BadSzDecimals(uint8 szDecimals);
 
     struct PerpAssetInfo {
         string coin;
@@ -42,8 +43,10 @@ library HLPrecompiles {
         return abi.decode(_call(PERP_ASSET_INFO, perp), (PerpAssetInfo)).szDecimals;
     }
 
-    /// Perp prices come back with `6 - szDecimals` decimals.
+    /// Perp prices come back with `6 - szDecimals` decimals, so szDecimals is at most 6. A larger value
+    /// is a caller's mistake and would scale prices up by orders of magnitude (from 46, overflow).
     function _scale(uint8 szDec) private pure returns (uint256) {
+        if (szDec > 6) revert BadSzDecimals(szDec);
         return 10 ** (12 + uint256(szDec));
     }
 

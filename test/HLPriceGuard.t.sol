@@ -191,6 +191,18 @@ contract HLPriceGuardTest is Test {
         h.read(unknown, bounds, none);
     }
 
+    /// Perp prices have 6 - szDecimals decimals: 6 is the largest szDecimals that makes sense.
+    function test_szDecimalsOverSixReverts() public {
+        HLPriceGuard.Asset memory a = HLPriceGuard.Asset({dex: 0, index: 1, szDecimals: 6});
+        h.read(a, HLPriceGuard.Bounds(0, 0, 0, 0), none);
+        a.szDecimals = 7;
+        vm.expectRevert(abi.encodeWithSelector(HLPrecompiles.BadSzDecimals.selector, uint8(7)));
+        h.read(a, bounds, none);
+        a.szDecimals = 46; // where 10 ** (12 + szDecimals) would overflow the multiply
+        vm.expectRevert(abi.encodeWithSelector(HLPrecompiles.BadSzDecimals.selector, uint8(46)));
+        h.read(a, bounds, none);
+    }
+
     function test_zeroBoundsDisableChecks() public {
         setEth(242723, 250000, 242000, 243000);
         HLPriceGuard.Bounds memory off;
