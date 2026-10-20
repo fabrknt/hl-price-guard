@@ -161,7 +161,7 @@ contract HLPriceGuardTest is Test {
         assertEq(bps, 16);
     }
 
-    /// Papertrade's 7 bp round passes a 15 bp bound (2x ETH's normal 7.2 bp). Bounds alone do not stop it, which is
+    /// Papertrade's 7 bp round passes a 15 bp bound (tighter than the ~25 bp that 2x ETH's US-session max gives). Bounds alone do not stop it, which is
     /// why the settled notional has to be capped as well (test_exposureCap*).
     function test_papertradeSmallPushPassesBounds() public {
         uint64 pushed = uint64(242723) * 10007 / 10000;

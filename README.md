@@ -46,7 +46,7 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   depth into a per-minute exposure cap per asset (calibrated on Papertrade, one incident: a first
   estimate). Both save as they go; `safe_caps.py summary OUT.json` re-prints per UTC hour.
   `session.sh START END OUT` runs both over a UTC window; `.github/workflows/measure-us-session.yml`
-  runs it on GitHub through the US session on 2026-10-19 and keeps the results as artifacts.
+  ran it on GitHub through the US session of 2026-10-19 (results in `docs/safe-limits.md`).
   `round_trips_collect.py` records trades (with wallets), best bid/offer and books;
   `round_trips.py` picks out single-wallet push-and-unwind round trips and compares their cost
   with the book-depth prediction, to test the Papertrade calibration on more than one incident.
@@ -57,10 +57,11 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
 ## Status
 **Not for production funds.** The library is unaudited and its caps are first estimates from
 little data; use it for research, test deployments and review.
-- Measured so far: one quiet 10-minute sample of normal gaps and one 18-minute sample of book
-  depth (2026-10-16, after the US close). The caps in `docs/safe-limits.md` are first estimates.
-- Running: a full US session (2026-10-19) re-measures both; round trips are collected every
-  6 hours to test the 0.27 calibration, which still rests on one incident.
+- Measured so far: normal gaps and book depth through one full US session (2026-10-19), plus a
+  quiet Friday-evening sample of each (2026-10-16). The caps in `docs/safe-limits.md` still rest
+  on the 0.27 calibration from one incident, so they remain first estimates.
+- Running: round trips are collected every 6 hours to test that calibration.
+- Not measured: weekends and volatile sessions.
 - Not done: a cost for pushes shorter than a minute; an audit.
 
 ## Versions

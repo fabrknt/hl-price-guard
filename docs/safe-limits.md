@@ -44,27 +44,29 @@ Papertrade on replay is the exposure cap (section 4), not the choice of price.
 - the BBO mid is more than `maxMidOracleBps` from the oracle.
 
 A tripwire only sees the gap between the book and the oracle, and it has to sit above normal
-noise: ETH's mid already drifts up to 7.2 bp from the oracle (below), so a bound at 2x is about
-15 bp. On Papertrade it would have caught nothing: because the oracle followed the push, the gap
-at close was 5.8 bp at the median and 10.2 bp at most. Bounds limit how far the price can be
+noise: over a full US session ETH's mid drifted up to 11.4 bp from the oracle (below), so a bound
+at 2x is about 25 bp. On Papertrade even 15 bp would have caught nothing: because the oracle
+followed the push, the gap at close was 5.8 bp at the median and 10.2 bp at most. Bounds limit how far the price can be
 pushed unnoticed; section 4 limits how much that push can be worth. You need both.
 
-### Normal gaps (first sample)
-Sampled about every 6 s (a 5 s wait plus the request; the script now waits 10 s) for 10 minutes,
-2026-10-16 22:50–23:00 UTC (a Friday evening in the US, after the stock close, so TSLA is out of
-US hours), `measure/normal_gaps.py`, 99 samples per asset. Max in bp:
+### Normal gaps (one US session)
+Sampled every 10 s, `measure/normal_gaps.py`, through the US session of Monday 2026-10-19,
+13:25–20:05 UTC (the stock market opened at 13:30 and closed at 20:00 UTC): 2,361 samples per
+asset, none failed, run on GitHub Actions (`.github/workflows/measure-us-session.yml`). In bp,
+max (p99); the last column is the opening hour, 13:30–14:30 UTC:
 
-| asset | mark–oracle | mid–oracle | spread |
-|---|---|---|---|
-| BTC | 3.1 | 3.1 | 0.1 |
-| ETH | 5.6 | 7.2 | 0.4 |
-| SOL | 6.2 | 6.7 | 1.0 |
-| HYPE | 5.2 | 6.6 | 0.4 |
-| xyz:TSLA | 2.6 | 7.5 | 1.7 |
+| asset | mark–oracle | mid–oracle | spread | mid–oracle, opening hour |
+|---|---|---|---|---|
+| BTC | 7.2 (4.6) | 8.6 (6.0) | 2.6 (0.6) | 8.6 (7.9) |
+| ETH | 10.8 (5.8) | 11.4 (8.5) | 2.9 (1.7) | 11.1 (10.2) |
+| SOL | 9.1 (6.7) | 13.5 (9.1) | 5.7 (1.9) | 13.5 (10.1) |
+| HYPE | 13.0 (7.9) | 19.0 (11.7) | 6.1 (1.7) | 18.8 (16.0) |
+| xyz:TSLA | 7.8 (6.1) | 38.5 (12.6) | 9.2 (2.8) | 38.5 (21.5) |
 
-Ten minutes on a quiet evening is a first look, not a basis for production bounds: re-measure
-across US hours, weekends and volatile sessions. A full US session (Monday 2026-10-19) is scheduled with
-`.github/workflows/measure-us-session.yml` (GitHub Actions), together with the book depth below.
+The opening hour is the noisiest: mid–oracle p99 is higher there for every asset, and xyz:TSLA's
+38.5 bp came 15 s after the open (outside that hour its max was 15.6 bp). Every maximum is above
+the first, quiet sample (2026-10-16 22:50–23:00 UTC, 99 samples: ETH mid–oracle 7.2 bp, TSLA
+7.5 bp). This is one session: weekends and volatile days are still unmeasured.
 
 Set each bound well above its normal maximum (2–3x) so normal trading does not trip it, and
 re-measure for every asset you list.
@@ -185,30 +187,36 @@ which pulls the ratio down for reasons that are not cheap manipulation; read the
 spread per asset, not its low tail, before replacing 0.27.
 
 `measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
-moment. First run, requested as 15 minutes, 2026-10-16 23:22–23:40 UTC (29 sweeps; a sweep of 14
-assets takes about 8 s on top of the 30 s interval), a Friday evening after the US close, so the xyz
-books are at their out-of-hours depth; re-measure in US hours:
+moment. Measured through the same US session as the normal gaps, 2026-10-19 13:25–20:05 UTC, 802
+sweeps for each asset except xyz:GOLD (801, one failed request). The opening hour is 13:30–14:30 UTC; the last
+column is the first run, 29 sweeps on Friday 2026-10-16 23:22–23:40 UTC, after the US close:
 
-| asset | depth10 p10 | cap per minute (k = 3) |
-|---|---|---|
-| BTC | $20.7M | $1.86M |
-| ETH | $3.7M | $0.33M |
-| SOL | $1.3M | $0.12M |
-| HYPE | $0.42M | $0.04M |
-| xyz:XYZ100 | $1.3M | $0.12M |
-| xyz:SP500 | $1.1M | $0.10M |
-| xyz:SPCX | $0.88M | $0.08M |
-| xyz:GOLD | $0.50M | $0.05M |
-| xyz:CL | $0.45M | $0.04M |
-| xyz:TSLA | $0.32M | $0.03M |
-| xyz:NVDA | $0.24M | $0.02M |
-| xyz:SKHX | $0.17M | $0.02M |
-| xyz:SMSN | $0.03M | under $0.01M |
-| xyz:KORU | $0.01M | under $0.01M |
+| asset | depth10 p10 | cap per minute (k = 3) | in the opening hour | 2026-10-16 evening |
+|---|---|---|---|---|
+| BTC | $18.75M | $1.69M | $1.60M | $1.86M |
+| xyz:SP500 | $4.32M | $0.39M | $0.35M | $0.10M |
+| xyz:XYZ100 | $3.86M | $0.35M | $0.28M | $0.12M |
+| ETH | $3.30M | $0.30M | $0.21M | $0.33M |
+| xyz:CL | $2.34M | $0.21M | $0.20M | $0.04M |
+| xyz:SPCX | $1.73M | $0.16M | $0.06M | $0.08M |
+| SOL | $1.39M | $0.13M | $0.09M | $0.12M |
+| xyz:GOLD | $1.05M | $0.09M | $0.08M | $0.05M |
+| xyz:TSLA | $0.60M | $0.05M | $0.04M | $0.03M |
+| xyz:NVDA | $0.48M | $0.04M | $0.04M | $0.02M |
+| HYPE | $0.38M | $0.03M | $0.04M | $0.04M |
+| xyz:SKHX | $0.24M | $0.02M | $0.03M | $0.02M |
+| xyz:SMSN | $0.04M | under $0.01M | under $0.01M | under $0.01M |
+| xyz:KORU | $0.02M | under $0.01M | under $0.01M | under $0.01M |
 
-xyz:SKHX carried $376M of open interest that day against a safe settlement rate of about $16K a
-minute. Anything settling against these prices at Papertrade's sizes is far outside the safe
-range.
+In US hours xyz:XYZ100, xyz:SP500 and xyz:CL were about 3 to 5 times deeper than on Friday
+evening; the other xyz books were up to about 2 times deeper or unchanged, and crypto about the same. The opening hour is thinner for most assets (ETH $0.21M,
+xyz:SPCX $0.06M). Single sweeps go far lower than p10: at 14:46:30 UTC the ask side within 10 bp
+was $3.46M for BTC and $0.03M for SOL, in the same sweep. A cap from p10 assumes a push is not
+timed to such a moment.
+
+xyz:SKHX carried $376M of open interest on 2026-10-16 against a safe settlement rate of about $16K
+a minute (about $22K in US hours). Anything settling against these prices at Papertrade's sizes is
+far outside the safe range.
 
 **For xyz markets these caps cover the book, not the oracle.** They bound what a push on the HL
 book is worth, which matters for anything that reads the BBO or mark, or whose checks lean on
