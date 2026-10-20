@@ -13,6 +13,8 @@
 # hours late, so each part is also dispatched on time by dispatch-at.yml with label
 # us-20261019-part1/-part2; a dispatch with that label shares the part's concurrency group, so
 # whichever starts first measures and the other waits, finds the window closed and skips.
+# Ran 2026-10-19: both parts dispatched on time by dispatch-at.yml, the late crons skipped. Data:
+# measure/normal-gaps-20261019.json and measure/safe-caps-20261019.json.
 name: measure-us-session
 
 on:

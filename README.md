@@ -46,7 +46,10 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   depth into a per-minute exposure cap per asset (calibrated on Papertrade, one incident: a first
   estimate). Both save as they go; `safe_caps.py summary OUT.json` re-prints per UTC hour.
   `session.sh START END OUT` runs both over a UTC window; `.github/workflows/measure-us-session.yml`
-  ran it on GitHub through the US session of 2026-10-19 (results in `docs/safe-limits.md`).
+  ran it on GitHub through the US session of 2026-10-19, started on time by `dispatch-at.yml`
+  because this repository's scheduled runs start hours late. The data are
+  `normal-gaps-20261019.json` and `safe-caps-20261019.json`; `session_tables.py` re-prints the
+  tables in `docs/safe-limits.md` from them.
   `round_trips_collect.py` records trades (with wallets), best bid/offer and books;
   `round_trips.py` picks out single-wallet push-and-unwind round trips and compares their cost
   with the book-depth prediction, to test the Papertrade calibration on more than one incident.
@@ -60,7 +63,9 @@ little data; use it for research, test deployments and review.
 - Measured so far: normal gaps and book depth through one full US session (2026-10-19), plus a
   quiet Friday-evening sample of each (2026-10-16). The caps in `docs/safe-limits.md` still rest
   on the 0.27 calibration from one incident, so they remain first estimates.
-- Running: round trips are collected every 6 hours to test that calibration.
+- Running: round trips are collected every 6 hours to test that calibration. In the first 10 runs
+  (2026-10-17 to 10-20) 27 candidates were found and none passed the strict filters, mostly
+  because the wallet's own trades were too small to explain the move, so 0.27 is not yet tested.
 - Not measured: weekends and volatile sessions.
 - Not done: a cost for pushes shorter than a minute; an audit.
 
@@ -83,7 +88,8 @@ against mainnet: it fetches real precompile output over the public RPC and decod
 through `PythRef` (`HL_LIVE=true forge test --match-contract Live`). Its bounds are loose: it
 catches a wrong encoding or scale, not a market anomaly. CI (`.github/workflows/test.yml`) runs
 the suite on pushes to `main` and pull requests, and the live check then and daily.
-- `test/HLPriceGuard.t.sol`: each check against mainnet values and the two incidents.
+- `test/HLPriceGuard.t.sol`: each check against mainnet values and the two incidents;
+  `lenientPrice` and `oracleOnly` (including a 0 price), and `szDecimals` over 6 reverting.
   `ExposureBudget.Rolling` has two fuzz tests (with and without `reconfigure`) that check every
   admitted spend against the cap and window it was admitted under.
 - `test/Properties.t.sol`: fuzz tests that `check` never passes a price outside an enabled bound

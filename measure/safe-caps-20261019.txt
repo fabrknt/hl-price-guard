@@ -1,0 +1,152 @@
+all: 2026-10-19 13:25-20:05 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          802       18.75M     22.72M      1.69M
+ETH          802        3.30M      5.74M      0.30M
+SOL          802        1.39M      1.98M      0.13M
+HYPE         802        0.38M      0.51M      0.03M
+xyz:XYZ100   802        3.86M      5.18M      0.35M
+xyz:SP500    802        4.32M      5.33M      0.39M
+xyz:SKHX     802        0.24M      0.33M      0.02M
+xyz:TSLA     802        0.60M      0.94M      0.05M
+xyz:CL       802        2.34M      2.74M      0.21M
+xyz:SPCX     802        1.73M      2.19M      0.16M
+xyz:NVDA     802        0.48M      0.77M      0.04M
+xyz:GOLD     801        1.05M      1.59M      0.09M
+xyz:SMSN     802        0.04M      0.06M      0.00M
+xyz:KORU     802        0.02M      0.06M      0.00M
+
+13:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC           70       18.77M     22.44M      1.69M
+ETH           70        3.28M      5.50M      0.30M
+SOL           70        1.12M      1.99M      0.10M
+HYPE          70        0.40M      0.50M      0.04M
+xyz:XYZ100    70        2.65M      4.00M      0.24M
+xyz:SP500     70        3.43M      4.49M      0.31M
+xyz:SKHX      70        0.20M      0.52M      0.02M
+xyz:TSLA      70        0.19M      0.75M      0.02M
+xyz:CL        70        2.05M      2.58M      0.18M
+xyz:SPCX      70        0.41M      1.49M      0.04M
+xyz:NVDA      70        0.27M      0.60M      0.02M
+xyz:GOLD      70        1.11M      1.54M      0.10M
+xyz:SMSN      70        0.04M      0.06M      0.00M
+xyz:KORU      70        0.00M      0.01M      0.00M
+
+14:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          120       17.44M     23.20M      1.57M
+ETH          120        2.45M      5.56M      0.22M
+SOL          120        1.19M      1.80M      0.11M
+HYPE         120        0.39M      0.51M      0.04M
+xyz:XYZ100   120        3.79M      4.77M      0.34M
+xyz:SP500    120        4.07M      5.20M      0.37M
+xyz:SKHX     120        0.36M      0.59M      0.03M
+xyz:TSLA     120        0.40M      0.65M      0.04M
+xyz:CL       120        2.37M      2.79M      0.21M
+xyz:SPCX     120        1.59M      2.19M      0.14M
+xyz:NVDA     120        0.48M      0.73M      0.04M
+xyz:GOLD     120        0.80M      1.12M      0.07M
+xyz:SMSN     120        0.05M      0.06M      0.00M
+xyz:KORU     120        0.01M      0.04M      0.00M
+
+15:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          120       17.81M     21.91M      1.60M
+ETH          120        3.31M      5.48M      0.30M
+SOL          120        1.33M      1.91M      0.12M
+HYPE         120        0.36M      0.49M      0.03M
+xyz:XYZ100   120        4.26M      5.26M      0.38M
+xyz:SP500    120        3.78M      5.41M      0.34M
+xyz:SKHX     120        0.24M      0.30M      0.02M
+xyz:TSLA     120        0.77M      0.96M      0.07M
+xyz:CL       120        2.22M      2.70M      0.20M
+xyz:SPCX     120        1.92M      2.23M      0.17M
+xyz:NVDA     120        0.52M      0.78M      0.05M
+xyz:GOLD     119        1.06M      1.45M      0.10M
+xyz:SMSN     120        0.05M      0.07M      0.00M
+xyz:KORU     120        0.02M      0.06M      0.00M
+
+16:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          121       18.38M     22.21M      1.65M
+ETH          121        3.68M      5.53M      0.33M
+SOL          121        1.56M      1.94M      0.14M
+HYPE         121        0.35M      0.48M      0.03M
+xyz:XYZ100   121        3.81M      5.13M      0.34M
+xyz:SP500    121        5.03M      5.58M      0.45M
+xyz:SKHX     121        0.24M      0.31M      0.02M
+xyz:TSLA     121        0.85M      0.98M      0.08M
+xyz:CL       121        2.41M      2.73M      0.22M
+xyz:SPCX     121        2.03M      2.21M      0.18M
+xyz:NVDA     121        0.47M      0.76M      0.04M
+xyz:GOLD     121        1.22M      1.49M      0.11M
+xyz:SMSN     121        0.04M      0.06M      0.00M
+xyz:KORU     121        0.03M      0.07M      0.00M
+
+17:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          120       19.98M     22.92M      1.80M
+ETH          120        3.46M      6.15M      0.31M
+SOL          120        1.56M      2.13M      0.14M
+HYPE         120        0.36M      0.48M      0.03M
+xyz:XYZ100   120        4.43M      5.31M      0.40M
+xyz:SP500    120        5.10M      5.43M      0.46M
+xyz:SKHX     120        0.24M      0.32M      0.02M
+xyz:TSLA     120        0.80M      1.02M      0.07M
+xyz:CL       120        2.41M      2.80M      0.22M
+xyz:SPCX     120        1.97M      2.21M      0.18M
+xyz:NVDA     120        0.50M      0.82M      0.04M
+xyz:GOLD     120        1.04M      1.74M      0.09M
+xyz:SMSN     120        0.04M      0.05M      0.00M
+xyz:KORU     120        0.03M      0.08M      0.00M
+
+18:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          120       20.83M     23.31M      1.87M
+ETH          120        4.05M      6.01M      0.36M
+SOL          120        1.60M      2.00M      0.14M
+HYPE         120        0.44M      0.58M      0.04M
+xyz:XYZ100   120        4.65M      5.48M      0.42M
+xyz:SP500    120        4.92M      5.32M      0.44M
+xyz:SKHX     120        0.25M      0.32M      0.02M
+xyz:TSLA     120        0.79M      0.95M      0.07M
+xyz:CL       120        2.42M      2.79M      0.22M
+xyz:SPCX     120        1.90M      2.21M      0.17M
+xyz:NVDA     120        0.55M      0.85M      0.05M
+xyz:GOLD     120        1.71M      2.16M      0.15M
+xyz:SMSN     120        0.04M      0.06M      0.00M
+xyz:KORU     120        0.04M      0.08M      0.00M
+
+19:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC          120       19.99M     22.66M      1.80M
+ETH          120        3.74M      6.06M      0.34M
+SOL          120        1.54M      2.17M      0.14M
+HYPE         120        0.42M      0.56M      0.04M
+xyz:XYZ100   120        4.43M      5.50M      0.40M
+xyz:SP500    120        4.93M      5.30M      0.44M
+xyz:SKHX     120        0.24M      0.30M      0.02M
+xyz:TSLA     120        0.83M      0.99M      0.07M
+xyz:CL       120        2.42M      2.74M      0.22M
+xyz:SPCX     120        1.95M      2.20M      0.18M
+xyz:NVDA     120        0.54M      0.82M      0.05M
+xyz:GOLD     120        1.18M      1.43M      0.11M
+xyz:SMSN     120        0.06M      0.07M      0.01M
+xyz:KORU     120        0.02M      0.07M      0.00M
+
+20:00 UTC
+asset          n  depth10 p10     median    cap/min
+BTC           11       19.35M     23.04M      1.74M
+ETH           11        3.25M      7.37M      0.29M
+SOL           11        1.27M      1.79M      0.11M
+HYPE          11        0.46M      0.52M      0.04M
+xyz:XYZ100    11        4.43M      4.91M      0.40M
+xyz:SP500     11        4.99M      5.23M      0.45M
+xyz:SKHX      11        0.20M      0.24M      0.02M
+xyz:TSLA      11        0.33M      0.43M      0.03M
+xyz:CL        11        2.40M      2.57M      0.22M
+xyz:SPCX      11        1.21M      1.49M      0.11M
+xyz:NVDA      11        0.42M      0.50M      0.04M
+xyz:GOLD      11        1.21M      1.42M      0.11M
+xyz:SMSN      11        0.05M      0.05M      0.00M
+xyz:KORU      11        0.01M      0.03M      0.00M

@@ -53,7 +53,8 @@ pushed unnoticed; section 4 limits how much that push can be worth. You need bot
 Sampled every 10 s, `measure/normal_gaps.py`, through the US session of Monday 2026-10-19,
 13:25–20:05 UTC (the stock market opened at 13:30 and closed at 20:00 UTC): 2,361 samples per
 asset, none failed, run on GitHub Actions (`.github/workflows/measure-us-session.yml`). In bp,
-max (p99); the last column is the opening hour, 13:30–14:30 UTC:
+max (p99); the last column is the opening hour, 13:30–14:30 UTC (data:
+`measure/normal-gaps-20261019.json`; `measure/session_tables.py` re-prints this table):
 
 | asset | mark–oracle | mid–oracle | spread | mid–oracle, opening hour |
 |---|---|---|---|---|
@@ -186,10 +187,18 @@ the same depth prediction as Papertrade's. Such wallets may be informed, hedged 
 which pulls the ratio down for reasons that are not cheap manipulation; read the strict cohort's
 spread per asset, not its low tail, before replacing 0.27.
 
+First result: the collector ran 10 times between 2026-10-17 and 10-20 (about 325 minutes each,
+on GitHub Actions). It found 27 candidates and no strict one. 24 were `small` (the wallet's own
+taker notional was under a quarter of what the move needed: someone else moved the price), 24
+`extrapolated` and 20 `hold` (unwound in under 20 s or over 120 s); most carry several flags.
+Single wallets pushing and unwinding within a minute may be rare outside an attack; if a few weeks
+give no strict round trip, the approach needs rethinking, and 0.27 stays one incident's number.
+
 `measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
 moment. Measured through the same US session as the normal gaps, 2026-10-19 13:25–20:05 UTC, 802
 sweeps for each asset except xyz:GOLD (801, one failed request). The opening hour is 13:30–14:30 UTC; the last
-column is the first run, 29 sweeps on Friday 2026-10-16 23:22–23:40 UTC, after the US close:
+column is the first run, 29 sweeps on Friday 2026-10-16 23:22–23:40 UTC, after the US close
+(data: `measure/safe-caps-20261019.json` and `measure/safe-caps-20261017.json`):
 
 | asset | depth10 p10 | cap per minute (k = 3) | in the opening hour | 2026-10-16 evening |
 |---|---|---|---|---|
