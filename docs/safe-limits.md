@@ -214,8 +214,8 @@ xyz:SPCX $0.06M). Single sweeps go far lower than p10: at 14:46:30 UTC the ask s
 was $3.46M for BTC and $0.03M for SOL, in the same sweep. A cap from p10 assumes a push is not
 timed to such a moment.
 
-xyz:SKHX carried $376M of open interest on 2026-10-16 against a safe settlement rate of about $16K
-a minute (about $22K in US hours). Anything settling against these prices at Papertrade's sizes is
+xyz:SKHX carried $376M of open interest on 2026-07-27 (the incident day) against a safe settlement
+rate of about $16K a minute from the Friday-evening book (about $22K in US hours). Anything settling against these prices at Papertrade's sizes is
 far outside the safe range.
 
 **For xyz markets these caps cover the book, not the oracle.** They bound what a push on the HL
