@@ -1,7 +1,7 @@
 # HL Price Guard (hl-price-guard)
 
 A neutral Solidity library for any HyperEVM app that reads Hyperliquid's own prices.
-Part of **Fabrknt for HIP-3** (fabrknt.com/hip3/price-guard); built for Hyperliquid, not affiliated with it.
+Part of **[Fabrknt for HIP-3](https://fabrknt.com/hip3/index.html)** ([product page](https://fabrknt.com/hip3/price-guard/index.html)); built for Hyperliquid, not affiliated with it.
 
 Scope: reading prices, detecting deviation (BBO, mark), an independent reference, a jump latch, and
 exposure caps. Nothing else: pools, settlement queues, liquidation and UI belong to the apps that use
