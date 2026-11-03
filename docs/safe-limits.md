@@ -120,6 +120,9 @@ price. Audits and replays need the L1 data: validators' `SetGlobalAction` for co
 deployers' `setOracle` for HIP-3, in the explorer blocks of `s3://hl-mainnet-node-data`.
 
 ## 4. Cap what one push can be worth
+> Status (2026-11-03): every cap here rests on one incident, Papertrade. Two weeks of collected
+> round trips did not add a second point (see "Measuring `C` per asset"), so size caps with margin.
+
 If moving the price by `d` bp for one window costs `C`, an exposure `E` settled in that window
 pays `E * d / 10000`. Keep it below the cost with a margin `k`:
 

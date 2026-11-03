@@ -89,7 +89,7 @@ their own oracle. For that, add an independent reference, the jump latch and a c
 | know why, without reverting (monitoring, pausing) | `HLPriceGuard.check` |
 | check against an independent price | `PythRef` + `maxRefOracleBps` |
 | reject an oracle that jumps, and every small step after | `HLPriceGuard.observe` (`JumpLatch`) |
-| cap how much settles against one price per minute | `ExposureBudget.Rolling` |
+| cap how much settles against one price per minute | `ExposureBudget.Rolling` (cap sizes: `docs/safe-limits.md` §4, first estimates from one incident) |
 | liquidate without a wide book holding it back | `HLPriceGuard.lenientPrice` |
 | test my contract locally | `HLTest` |
 | test inside hyper-evm-lib's simulator | `HLTest.installBboOnly` + `setBbo` |
