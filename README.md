@@ -25,7 +25,11 @@ Use it in your own Foundry project:
 
 ```bash
 forge install fabrknt/hl-price-guard@v0.3.0
+echo 'hl-price-guard/=lib/hl-price-guard/src/' >> remappings.txt
 ```
+The second line pins where `hl-price-guard/` imports resolve. Without it, Foundry guesses from the
+repo's layout and can pick the repo root (it did with v0.3.0 and forge 1.7.1), and the imports
+below are not found.
 ```solidity
 import {HLPriceGuard} from "hl-price-guard/HLPriceGuard.sol";
 
@@ -190,7 +194,8 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
   on the position's side; `PythRef.updateAndRead` paying the fee and reading the update.
 - `test/Quickstart.t.sol`: `examples/GuardedMarket.sol` on a normal ETH book (accepted) and on
   Papertrade's pushed book (rejected), through `HLTest`; shown to fail with the mid check turned off.
-  `HLTest` itself was installed into a fresh Foundry project and the README test run there.
+  The Quickstart's install steps were run in a fresh Foundry project (`forge install` of `v0.3.0`
+  from GitHub, forge 1.7.1) and the README test passed there.
 - `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` is not run here (it needs hyper-evm-lib and
   mainnet). It was run in a project with both libraries (hyper-evm-lib `4eb7ab0`, 2026-11-03): 3
   passed, and the mark test failed with the mark check turned off.
