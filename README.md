@@ -7,6 +7,71 @@ Scope: reading prices, detecting deviation (BBO, mark), an independent reference
 exposure caps. Nothing else: pools, settlement queues, liquidation and UI belong to the apps that use
 it (for example Day One, below), and nothing in this repo depends on any of them.
 
+## Quickstart
+Try it in a minute, with no key and no funds:
+
+```bash
+git clone https://github.com/fabrknt/hl-price-guard && cd hl-price-guard
+forge test --match-contract Quickstart -vv
+```
+```
+normal book:   accepted at $2427.23
+pushed book:   rejected, mid vs oracle 20 bp, limit 15
+```
+The second book is the one from Papertrade's first rounds (2026-10-10), when one wallet pushed HL's
+ETH book about 20 bp while the oracle stayed.
+
+Use it in your own Foundry project:
+
+```bash
+forge install fabrknt/hl-price-guard@v0.3.0
+```
+```solidity
+import {HLPriceGuard} from "hl-price-guard/HLPriceGuard.sol";
+
+contract MyMarket {
+    HLPriceGuard.Asset ETH = HLPriceGuard.Asset({dex: 0, index: 1, szDecimals: 4});
+    HLPriceGuard.Bounds BOUNDS =
+        HLPriceGuard.Bounds({maxMarkOracleBps: 15, maxMidOracleBps: 15, maxSpreadBps: 10, maxRefOracleBps: 0});
+
+    function price() public view returns (uint256) {
+        // The oracle (1e18), or a revert PriceRejected(reason, observedBps, limitBps).
+        return HLPriceGuard.read(ETH, BOUNDS, HLPriceGuard.Ref(0, 0, 0));
+    }
+}
+```
+Test it locally with `HLTest`, which puts mock precompiles at their real addresses (forge's fork
+mode cannot run them) and lets you set prices in 1e18:
+
+```solidity
+import {HLTest} from "hl-price-guard/test/HLTest.sol";
+
+contract MyMarketTest is HLTest {
+    function setUp() public { installHL(); }
+
+    function test_pushedBook() public {
+        MyMarket m = new MyMarket();
+        setBook(ETH, 2427.23e18, 2428.00e18, 2432.00e18, 2432.10e18); // oracle, mark, bid, ask
+        vm.expectRevert();
+        m.price();
+    }
+}
+```
+The same contract and test are `examples/GuardedMarket.sol` and `test/Quickstart.t.sol`.
+
+| I want to… | Use |
+|---|---|
+| read a price and revert if the book was pushed | `HLPriceGuard.read` |
+| know why, without reverting (monitoring, pausing) | `HLPriceGuard.check` |
+| check against an independent price | `PythRef` + `maxRefOracleBps` |
+| reject an oracle that jumps, and every small step after | `HLPriceGuard.observe` (`JumpLatch`) |
+| cap how much settles against one price per minute | `ExposureBudget.Rolling` |
+| liquidate without a wide book holding it back | `HLPriceGuard.lenientPrice` |
+| test my contract locally | `HLTest` |
+
+Bounds and caps per asset: `docs/safe-limits.md`. Pin a tag, not `main` (see Versions).
+
+## How HL prices reach HyperEVM
 HyperEVM contracts can read HyperCore prices through precompiles:
 
 | Precompile | Price | Set by | How hard to move |
@@ -31,8 +96,11 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
     no stretch of the window settles more than the cap; cap and window change only through
     `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
   - `HLPrecompiles`: raw reads and the two index encodings.
+  - `test/HLTest`: a base for testing your own contract locally, with mock precompiles at their
+    real addresses and prices set in 1e18.
   - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`,
     private for now), a research launch pool. It uses this library as a git submodule (see Versions).
+- `examples/GuardedMarket.sol`: the smallest contract using the library (tested in `test/Quickstart.t.sol`).
 - `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
   the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key); then
   liquidations, prices at a set time and testnet, learned from apps built on the library.
@@ -77,8 +145,9 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
   "never spent", so `reconfigure` skipped the wait.
 - `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
-- Untagged on `main` since `v0.2.1`: `szDecimals` over 6 reverts (`BadSzDecimals`; it used to
-  mis-scale, and overflow from 46); `lenientPrice`, `oracleOnly` and `NoPrice`. Not tagged yet.
+- `v0.3.0`: `szDecimals` over 6 reverts (`BadSzDecimals`; it used to mis-scale, and overflow from 46);
+  `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally; source files
+  carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork

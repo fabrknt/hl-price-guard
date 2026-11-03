@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
 
 /// @notice Raw reads of HyperCore prices from HyperEVM, normalized to 1e18.

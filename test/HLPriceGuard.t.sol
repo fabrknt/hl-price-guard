@@ -1,26 +1,12 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
 
+import {HLMockPrecompile as MockPrecompile} from "../src/test/HLTest.sol";
 import {Test} from "forge-std/Test.sol";
 import {HLPrecompiles} from "../src/HLPrecompiles.sol";
 import {HLPriceGuard} from "../src/HLPriceGuard.sol";
 import {ExposureBudget} from "../src/ExposureBudget.sol";
 import {PythRef, IPyth} from "../src/PythRef.sol";
-
-/// Etched at a precompile address: returns whatever was set for the 32-byte input,
-/// and fails (like the real precompiles) for anything unset.
-contract MockPrecompile {
-    mapping(bytes32 => bytes) internal ret;
-
-    function set(uint32 index, bytes calldata out) external {
-        ret[keccak256(abi.encode(index))] = out;
-    }
-
-    fallback(bytes calldata input) external returns (bytes memory out) {
-        out = ret[keccak256(input)];
-        require(out.length != 0, "PrecompileError");
-    }
-}
 
 contract MockPyth {
     IPyth.Price internal p;
