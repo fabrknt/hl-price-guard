@@ -194,6 +194,23 @@ taker notional was under a quarter of what the move needed: someone else moved t
 Single wallets pushing and unwinding within a minute may be rare outside an attack; if a few weeks
 give no strict round trip, the approach needs rethinking, and 0.27 stays one incident's number.
 
+Through 2026-11-03 (59 runs, 314 hours collected; `measure/round-trips-20261017-20261103.jsonl`,
+`python3 measure/round_trips_summary.py` on it): 321 candidates from 133 wallets, 7 strict, 5 on
+HYPE and 2 on xyz:TSLA. Their ratios do not cluster: HYPE -11.30, -4.87, 0.90, 1.50, 6.69; xyz:TSLA
+-0.72, 15.03. Three are negative: the wallet made money on the round trip. The reason is size. Every
+strict push moved the mid only 5 to 14 bp, so the predicted cost is $10 to $87, while the cash cost
+ran from -$202 to +$488. Cost that far from the prediction, and below zero, is mostly the price drifting
+during the 30 to 95 s hold, not the push: the push's own cost is of the order predicted, the drift is not.
+At this size a round trip's cash cost measures where the price went while the wallet waited, not
+what moving the book cost. So these 7 neither confirm nor replace 0.27, and no push near
+Papertrade's size (tens of bp, millions of notional) happened in the 314 hours.
+
+The approach needs rethinking, as planned. Two changes would make round trips informative: keep
+only pushes whose predicted cost is well above the drift a hold of that length typically causes on
+that asset (most of the 7 would drop out), and measure the push leg by itself (the mid's move
+against the notional swept, before any unwinding) rather than the round trip's cash. Until then
+the caps below rest on Papertrade alone.
+
 `measure/safe_caps.py` samples depth10 every 30 s and uses its p10, since a push picks a thin
 moment. Measured through the same US session as the normal gaps, 2026-10-19 13:25–20:05 UTC, 802
 sweeps for each asset except xyz:GOLD (801, one failed request). The opening hour is 13:30–14:30 UTC; the last

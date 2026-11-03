@@ -147,6 +147,9 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   `round_trips_collect.py` records trades (with wallets), best bid/offer and books;
   `round_trips.py` picks out single-wallet push-and-unwind round trips and compares their cost
   with the book-depth prediction, to test the Papertrade calibration on more than one incident.
+  `round_trips_summary.py` combines many runs' results; the runs through 2026-11-03 are in
+  `round-trips-20261017-20261103.jsonl` (with `round-trips-covered-20261017-20261103.json`, the
+  stretches collected).
   `.github/workflows/collect-round-trips.yml` runs both every 6 hours (it skips itself if the
   repository is private) and keeps the round trips found as artifacts for 30 days.
   Data files are named by the JST date they were taken; their timestamps are UTC.
@@ -157,9 +160,11 @@ little data; use it for research, test deployments and review.
 - Measured so far: normal gaps and book depth through one full US session (2026-10-19), plus a
   quiet Friday-evening sample of each (2026-10-16). The caps in `docs/safe-limits.md` still rest
   on the 0.27 calibration from one incident, so they remain first estimates.
-- Running: round trips are collected every 6 hours to test that calibration. In the first 10 runs
-  (2026-10-17 to 10-20) 27 candidates were found and none passed the strict filters, mostly
-  because the wallet's own trades were too small to explain the move, so 0.27 is not yet tested.
+- Running: round trips are collected every 6 hours to test that calibration. Through 2026-11-03
+  (59 runs, 314 hours) 7 of 321 candidates passed the strict filters, but all were 5 to 14 bp pushes
+  whose predicted cost ($10 to $87) was smaller than the price drift while the wallet held: their
+  ratios run from -11 to 15. They neither confirm nor replace 0.27, which is still one incident's
+  number; how to change the measurement is in `docs/safe-limits.md` ("Measuring `C` per asset").
 - Not measured: weekends and volatile sessions.
 - Not done: a cost for pushes shorter than a minute; an audit.
 
