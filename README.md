@@ -158,8 +158,8 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
 
 ## Tests
-`forge test`. Precompiles are mocked at their real addresses with mainnet values: forge's fork
-mode cannot run HyperEVM's custom precompiles. `test/Live.t.sol` checks what the mocks assume
+`forge test`. Precompiles are mocked at their real addresses with mainnet values (`HLTest`, the
+same mock apps use): forge's fork mode cannot run HyperEVM's custom precompiles. `test/Live.t.sol` checks what the mocks assume
 against mainnet: it fetches real precompile output over the public RPC and decodes it with
 `HLPrecompiles` for BTC, ETH, xyz:TSLA and the L1 block number, and reads HyperEVM's Pyth
 through `PythRef` (`HL_LIVE=true forge test --match-contract Live`). Its bounds are loose: it
@@ -173,6 +173,9 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
   and never reports a breach within one, that `diffBps` rounds up, and that the jump latch moves
   its anchor only on an accepted read, that `lenientPrice` returns one of the two feeds and the one
   on the position's side; `PythRef.updateAndRead` paying the fee and reading the update.
+- `test/Quickstart.t.sol`: `examples/GuardedMarket.sol` on a normal ETH book (accepted) and on
+  Papertrade's pushed book (rejected), through `HLTest`; shown to fail with the mid check turned off.
+  `HLTest` itself was installed into a fresh Foundry project and the README test run there.
 - `test/Integration.t.sol`: an example settlement contract wiring Pyth, the tripwires, the latch
   and a rolling cap the way docs/safe-limits.md recommends, run through Papertrade- and
   SKHX-like moves. A starting point for apps, not part of the library.

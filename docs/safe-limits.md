@@ -273,7 +273,7 @@ reads the precompiles directly must check for 0 itself.
 **Testnet prices are not usable for the checks.** On HyperEVM testnet the HYPE perp's mark sat
 far from its oracle: 2,797 bp on 2026-10-18 (oracle 40.48, mark 51.80, book 42.5 to 58.5) and
 2,678 bp on 2026-10-19, while BTC (index 3) was within 9 bp. HyperCore's lending reserve
-(`0x812`) priced HYPE at the mark, not the oracle. Test the checks on BTC, or with bounds set to 0.
+(`0x812`) priced HYPE at the mark, not the oracle. Test the checks on BTC, or with bounds set to 0; locally, set the prices with `HLTest`.
 
 **Spot.** This library reads perps only. `0x80e` also answers for spot, with the order asset ID
 `10000 + spot index` (seen on testnet in psyto/hyperevm-amm); `bboIndex` does not produce it.
@@ -298,3 +298,5 @@ far from its oracle: 2,797 bp on 2026-10-18 (oracle 40.48, mark 51.80, book 42.5
       time of the call.
 - [ ] Every direct `HLPrecompiles` read checks for 0, and `szDecimals` is at most 6.
 - [ ] A Hermes API key is arranged before `PythRef` is relied on.
+- [ ] Each check the app relies on has a local test that fails without it (`HLTest` sets the
+      book, mark and oracle; see `test/Quickstart.t.sol` and `test/Integration.t.sol`).
