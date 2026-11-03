@@ -149,7 +149,7 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   with the book-depth prediction, to test the Papertrade calibration on more than one incident.
   `round_trips_summary.py` combines many runs' results; the runs through 2026-11-03 are in
   `round-trips-20261017-20261103.jsonl` (with `round-trips-covered-20261017-20261103.json`, the
-  stretches collected).
+  stretches collected, and `round-trips-runs-20261017-20261103.txt`, the workflow run IDs).
   `.github/workflows/collect-round-trips.yml` runs both every 6 hours (it skips itself if the
   repository is private) and keeps the round trips found as artifacts for 30 days.
   Data files are named by the JST date they were taken; their timestamps are UTC.
@@ -161,10 +161,11 @@ little data; use it for research, test deployments and review.
   quiet Friday-evening sample of each (2026-10-16). The caps in `docs/safe-limits.md` still rest
   on the 0.27 calibration from one incident, so they remain first estimates.
 - Running: round trips are collected every 6 hours to test that calibration. Through 2026-11-03
-  (59 runs, 314 hours) 7 of 321 candidates passed the strict filters, but all were 5 to 14 bp pushes
-  whose predicted cost ($10 to $87) was smaller than the price drift while the wallet held: their
-  ratios run from -11 to 15. They neither confirm nor replace 0.27, which is still one incident's
-  number; how to change the measurement is in `docs/safe-limits.md` ("Measuring `C` per asset").
+  (59 runs, 314 hours) 7 of 321 candidates passed the strict filters, all 5 to 14 bp pushes with a
+  predicted cost of $10 to $87 and ratios from -11 to 15; the 14 pushes of $1M or more were all
+  filtered out, mostly because they moved past the recorded book or unwound outside 20 to 120 s.
+  0.27 is still one incident's number; how to change the measurement is in `docs/safe-limits.md`
+  ("Measuring `C` per asset").
 - Not measured: weekends and volatile sessions.
 - Not done: a cost for pushes shorter than a minute; an audit.
 
