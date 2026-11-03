@@ -53,6 +53,8 @@ abstract contract HLTest is Test {
     }
 
     function _raw(uint256 px, HLPriceGuard.Asset memory a) private pure returns (uint64) {
-        return uint64(px / 10 ** (12 + uint256(a.szDecimals)));
+        uint256 raw = px / 10 ** (12 + uint256(a.szDecimals));
+        require(raw <= type(uint64).max, "HLTest: price does not fit the precompile's uint64");
+        return uint64(raw);
     }
 }

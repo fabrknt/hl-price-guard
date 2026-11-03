@@ -45,6 +45,7 @@ mode cannot run them) and lets you set prices in 1e18:
 
 ```solidity
 import {HLTest} from "hl-price-guard/test/HLTest.sol";
+import {HLPriceGuard} from "hl-price-guard/HLPriceGuard.sol";
 
 contract MyMarketTest is HLTest {
     function setUp() public { installHL(); }
@@ -52,16 +53,23 @@ contract MyMarketTest is HLTest {
     function test_pushedBook() public {
         MyMarket m = new MyMarket();
         setBook(ETH, 2427.23e18, 2428.00e18, 2432.00e18, 2432.10e18); // oracle, mark, bid, ask
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(HLPriceGuard.PriceRejected.selector, HLPriceGuard.Breach.MidOracle, 20, 15)
+        );
         m.price();
     }
 }
 ```
 The same contract and test are `examples/GuardedMarket.sol` and `test/Quickstart.t.sol`.
 
+`read` is a deviation check: it rejects a book or mark that has moved away from the oracle. It does
+not stop a push that moves the oracle too (Papertrade's later rounds), or a HIP-3 deployer moving
+their own oracle. For that, add an independent reference, the jump latch and a cap, as
+`test/Integration.t.sol` does; the table below says which piece covers what.
+
 | I want to… | Use |
 |---|---|
-| read a price and revert if the book was pushed | `HLPriceGuard.read` |
+| read the oracle, reverting when the book or mark has moved away from it | `HLPriceGuard.read` |
 | know why, without reverting (monitoring, pausing) | `HLPriceGuard.check` |
 | check against an independent price | `PythRef` + `maxRefOracleBps` |
 | reject an oracle that jumps, and every small step after | `HLPriceGuard.observe` (`JumpLatch`) |

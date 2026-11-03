@@ -4,8 +4,9 @@ pragma solidity ^0.8.20;
 import {HLPriceGuard} from "../src/HLPriceGuard.sol";
 
 /// The smallest use of the library: a contract that needs Hyperliquid's ETH price and would rather
-/// revert than use one a single wallet can push. In your project, import from
-/// "hl-price-guard/HLPriceGuard.sol" instead.
+/// revert than use it while the book or mark is away from the oracle. A push that moves the oracle
+/// too passes; test/Integration.t.sol adds the reference, latch and cap that cover it. In your
+/// project, import from "hl-price-guard/HLPriceGuard.sol" instead.
 contract GuardedMarket {
     HLPriceGuard.Asset ETH = HLPriceGuard.Asset({dex: 0, index: 1, szDecimals: 4});
     // Bounds from docs/safe-limits.md for ETH. 0 turns a check off; no independent reference here.
