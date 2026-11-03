@@ -3,7 +3,8 @@ pragma solidity ^0.8.20;
 
 // For a project that already tests with hyper-evm-lib's simulator. Not compiled in this repo
 // (it needs hyper-evm-lib); copy it into your test/ folder. Needs network access: the simulator
-// forks mainnet, so the oracle is ETH's live oracle.
+// forks mainnet, and reads the oracle live from mainnet on every call, so the tests leave room for
+// it to move between reads.
 //
 // Remappings: hl-price-guard/=lib/hl-price-guard/src/  @hyper-evm-lib/=lib/hyper-evm-lib/
 
@@ -32,7 +33,7 @@ contract GuardedMarketSimTest is HLTest {
 
     function test_calmBookIsAccepted() public {
         uint256 oracle = _calmBook();
-        assertEq(market.price(), oracle / 1e16 * 1e16);
+        assertApproxEqRel(market.price(), oracle, 0.001e18); // within 10 bp: the live oracle may have ticked
     }
 
     /// The simulator's own way to move a price (as in its PerpTradingTest): the mark up 20%.
@@ -43,13 +44,21 @@ contract GuardedMarketSimTest is HLTest {
         market.price();
     }
 
-    /// The book pushed 20 bp while the oracle stays, as in Papertrade's first rounds.
+    /// The book pushed ~20 bp while the oracle stays, as in Papertrade's first rounds. The exact bp
+    /// depends on tick rounding and the live oracle, so the test checks the reason.
     function test_pushedBookIsRejected() public {
         uint256 oracle = _calmBook();
         setBbo(ETH, oracle + oracle / 500, oracle + oracle / 500 + oracle / 100_000);
-        vm.expectRevert(
-            abi.encodeWithSelector(HLPriceGuard.PriceRejected.selector, HLPriceGuard.Breach.MidOracle, 21, 15)
-        );
-        market.price();
+        try market.price() returns (uint256) {
+            fail("a pushed book should be rejected");
+        } catch (bytes memory err) {
+            assertEq(bytes4(err), HLPriceGuard.PriceRejected.selector);
+            bytes memory args = new bytes(err.length - 4);
+            for (uint256 i; i < args.length; i++) {
+                args[i] = err[i + 4];
+            }
+            (HLPriceGuard.Breach why,,) = abi.decode(args, (HLPriceGuard.Breach, uint256, uint256));
+            assertEq(uint8(why), uint8(HLPriceGuard.Breach.MidOracle));
+        }
     }
 }

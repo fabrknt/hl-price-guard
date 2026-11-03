@@ -69,8 +69,10 @@ but it cannot set the oracle and does not model the book: BBO reads go to mainne
 keeps the oracle and mark. `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` plays a calm book,
 the simulator's own +20% mark move, and Papertrade's pushed book against ETH's live oracle. It is
 not compiled here; copy it into a project with both libraries (checked with hyper-evm-lib
-`4eb7ab0`). It needs network access, and the public RPC sometimes answers "invalid block height":
-rerun.
+`4eb7ab0`). It needs network access. The simulator reads the oracle live on every call, so a test
+can see it move between reads (the example leaves room for that), and the public RPC sometimes
+answers "invalid block height": rerun. `installBboOnly` replaces the book for every asset: set each
+one your contract reads with `setBbo`, or its BBO read reverts.
 
 `read` is a deviation check: it rejects a book or mark that has moved away from the oracle. It does
 not stop a push that moves the oracle too (Papertrade's later rounds), or a HIP-3 deployer moving
