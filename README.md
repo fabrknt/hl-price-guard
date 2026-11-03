@@ -62,6 +62,16 @@ contract MyMarketTest is HLTest {
 ```
 The same contract and test are `examples/GuardedMarket.sol` and `test/Quickstart.t.sol`.
 
+Already testing with [hyper-evm-lib](https://github.com/hyperliquid-dev/hyper-evm-lib)'s
+simulator? Its simulator forks mainnet and lets you move the mark (`CoreSimulatorLib.setMarkPx`),
+but it cannot set the oracle and does not model the book: BBO reads go to mainnet. Call
+`installBboOnly()` after `CoreSimulatorLib.init()` and set the book with `setBbo`; the simulator
+keeps the oracle and mark. `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` plays a calm book,
+the simulator's own +20% mark move, and Papertrade's pushed book against ETH's live oracle. It is
+not compiled here; copy it into a project with both libraries (checked with hyper-evm-lib
+`4eb7ab0`). It needs network access, and the public RPC sometimes answers "invalid block height":
+rerun.
+
 `read` is a deviation check: it rejects a book or mark that has moved away from the oracle. It does
 not stop a push that moves the oracle too (Papertrade's later rounds), or a HIP-3 deployer moving
 their own oracle. For that, add an independent reference, the jump latch and a cap, as
@@ -76,6 +86,7 @@ their own oracle. For that, add an independent reference, the jump latch and a c
 | cap how much settles against one price per minute | `ExposureBudget.Rolling` |
 | liquidate without a wide book holding it back | `HLPriceGuard.lenientPrice` |
 | test my contract locally | `HLTest` |
+| test inside hyper-evm-lib's simulator | `HLTest.installBboOnly` + `setBbo` |
 
 Bounds and caps per asset: `docs/safe-limits.md`. Pin a tag, not `main` (see Versions).
 
@@ -109,6 +120,7 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`,
     private for now), a research launch pool. It uses this library as a git submodule (see Versions).
 - `examples/GuardedMarket.sol`: the smallest contract using the library (tested in `test/Quickstart.t.sol`).
+- `examples/with-hyper-evm-lib/`: the same contract tested inside hyper-evm-lib's simulator.
 - `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
   the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key); then
   liquidations, prices at a set time and testnet, learned from apps built on the library.
@@ -154,7 +166,8 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
   "never spent", so `reconfigure` skipped the wait.
 - `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
 - `v0.3.0`: `szDecimals` over 6 reverts (`BadSzDecimals`; it used to mis-scale, and overflow from 46);
-  `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally; source files
+  `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally, alone or
+  inside hyper-evm-lib's simulator (`installBboOnly`, `setBbo`); source files
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
 
 ## Tests
@@ -176,6 +189,9 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
 - `test/Quickstart.t.sol`: `examples/GuardedMarket.sol` on a normal ETH book (accepted) and on
   Papertrade's pushed book (rejected), through `HLTest`; shown to fail with the mid check turned off.
   `HLTest` itself was installed into a fresh Foundry project and the README test run there.
+- `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` is not run here (it needs hyper-evm-lib and
+  mainnet). It was run in a project with both libraries (hyper-evm-lib `4eb7ab0`, 2026-11-03): 3
+  passed, and the mark test failed with the mark check turned off.
 - `test/Integration.t.sol`: an example settlement contract wiring Pyth, the tripwires, the latch
   and a rolling cap the way docs/safe-limits.md recommends, run through Papertrade- and
   SKHX-like moves. A starting point for apps, not part of the library.

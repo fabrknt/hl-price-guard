@@ -39,6 +39,13 @@ abstract contract HLTest is Test {
         vm.etch(HLPrecompiles.BBO, mock.code);
     }
 
+    /// With hyper-evm-lib's simulator (CoreSimulatorLib.init), which serves the oracle and mark
+    /// itself but sends BBO reads to mainnet: replaces only 0x80e, so `setBbo` controls the book
+    /// while the simulator keeps the oracle and mark (move the mark with CoreSimulatorLib.setMarkPx).
+    function installBboOnly() internal {
+        vm.etch(HLPrecompiles.BBO, address(new HLMockPrecompile()).code);
+    }
+
     /// Prices in 1e18. Digits finer than the asset's tick (6 - szDecimals decimals) are dropped,
     /// as HyperCore would never report them.
     function setBook(HLPriceGuard.Asset memory a, uint256 oracle, uint256 mark, uint256 bid, uint256 ask)
@@ -47,6 +54,10 @@ abstract contract HLTest is Test {
         uint32 perp = HLPrecompiles.perpIndex(a.dex, a.index);
         HLMockPrecompile(HLPrecompiles.ORACLE_PX).set(perp, abi.encode(_raw(oracle, a)));
         HLMockPrecompile(HLPrecompiles.MARK_PX).set(perp, abi.encode(_raw(mark, a)));
+        setBbo(a, bid, ask);
+    }
+
+    function setBbo(HLPriceGuard.Asset memory a, uint256 bid, uint256 ask) internal {
         HLMockPrecompile(HLPrecompiles.BBO).set(
             HLPrecompiles.bboIndex(a.dex, a.index), abi.encode(_raw(bid, a), _raw(ask, a))
         );
