@@ -219,7 +219,8 @@ purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1
 - `v0.2.0` (d996453): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
   "never spent", so `reconfigure` skipped the wait.
-- `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
+- `v0.2.1` (f18cdd4): the same, with that fix. The first version safe to pin for `Rolling`; new
+  projects should pin the latest tag.
 - `v0.3.0` (b343536): `szDecimals` over 6 reverts (`BadSzDecimals`; it used to mis-scale, and overflow from 46);
   `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally, alone or
   inside hyper-evm-lib's simulator (`installBboOnly`, `setBbo`); source files
