@@ -45,7 +45,7 @@ is why that incident needs the cap in the table above as well.
 Use it in your own Foundry project:
 
 ```bash
-forge install fabrknt/hl-price-guard@v0.3.0
+forge install fabrknt/hl-price-guard@v0.3.1
 echo 'hl-price-guard/=lib/hl-price-guard/src/' >> remappings.txt
 ```
 The second line pins where `hl-price-guard/` imports resolve. Without it, Foundry guesses from the
@@ -219,11 +219,12 @@ purpose, never to the latest commit. Day One, hyperevm-lend and hyperevm-perp pi
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
   "never spent", so `reconfigure` skipped the wait.
 - `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
-- Untagged on `main` since `v0.3.0`: `HLTest.setBookRaw`.
 - `v0.3.0` (b343536): `szDecimals` over 6 reverts (`BadSzDecimals`; it used to mis-scale, and overflow from 46);
   `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally, alone or
   inside hyper-evm-lib's simulator (`installBboOnly`, `setBbo`); source files
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
+- `v0.3.1`: adds `HLTest.setBookRaw`, for tests that hold prices in the precompiles' own units
+  (as hyperevm-lend and hyperevm-perp do). No change to the library contracts.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values (`HLTest`, the
