@@ -45,6 +45,18 @@ contract QuickstartTest is HLTest {
         market.price();
     }
 
+    /// A HIP-3 asset: oracle and mark at dex * 10000 + index, the book at the API id
+    /// 100000 + dex * 10000 + index (xyz:TSLA, dex 1 index 1; szDecimals 3, so 3 price decimals).
+    function test_setBookRawHip3UsesBothIndexEncodings() public {
+        HLPriceGuard.Asset memory tsla = HLPriceGuard.Asset({dex: 1, index: 1, szDecimals: 3});
+        setBookRaw(tsla, 433_120, 433_050, 433_000, 433_200);
+        HLPriceGuard.Quote memory q = HLPriceGuard.quote(tsla);
+        assertEq(q.oracle, 433.12e18);
+        assertEq(q.mark, 433.05e18);
+        assertEq(q.bid, 433.0e18);
+        assertEq(q.ask, 433.2e18);
+    }
+
     function _decode(bytes memory err) internal pure returns (HLPriceGuard.Breach, uint256, uint256) {
         require(bytes4(err) == HLPriceGuard.PriceRejected.selector, "not a guard rejection");
         bytes memory args = new bytes(err.length - 4);
