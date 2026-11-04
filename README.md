@@ -193,8 +193,9 @@ Projects of ours that depend on it through a pinned tag, the way an outside app 
 
 All three moved from `v0.2.1` to `v0.3.0` on 2026-11-04 with no change to their contracts and all
 their tests passing. hyperevm-lend and hyperevm-perp hold their test prices in the precompiles' own
-units and had to convert them for `setBook`, which is where `setBookRaw` came from; Day One kept its
-raw `.set` calls on `HLMockPrecompile`.
+units and had to convert them for `setBook`, which is where `setBookRaw` came from; both moved to
+`v0.3.1` the same day and now pass those units straight to `setBookRaw`. Day One kept its raw `.set`
+calls on `HLMockPrecompile` and stays on `v0.3.0`.
 
 ## Status
 **Not for production funds.** The library is unaudited and its caps are first estimates from
@@ -213,7 +214,7 @@ little data; use it for research, test deployments and review.
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
-purpose, never to the latest commit. Day One, hyperevm-lend and hyperevm-perp pin `v0.3.0` (Used in).
+purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1`, Day One `v0.3.0` (Used in).
 - `v0.1.0` (b596268): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
 - `v0.2.0` (d996453): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
@@ -223,7 +224,7 @@ purpose, never to the latest commit. Day One, hyperevm-lend and hyperevm-perp pi
   `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally, alone or
   inside hyper-evm-lib's simulator (`installBboOnly`, `setBbo`); source files
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
-- `v0.3.1`: adds `HLTest.setBookRaw`, for tests that hold prices in the precompiles' own units
+- `v0.3.1` (f151b2d): adds `HLTest.setBookRaw`, for tests that hold prices in the precompiles' own units
   (as hyperevm-lend and hyperevm-perp do). No change to the library contracts.
 
 ## Tests
@@ -245,7 +246,8 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
 - `test/Quickstart.t.sol`: `examples/GuardedMarket.sol` on a normal ETH book (accepted) and on
   Papertrade's pushed book (rejected), through `HLTest`; shown to fail with the mid check turned off.
   The Quickstart's install steps were run in a fresh Foundry project (`forge install` of `v0.3.0`
-  from GitHub, forge 1.7.1) and the README test passed there.
+  from GitHub, forge 1.7.1) and the README test passed there; repeated for `v0.3.1` with a
+  `setBookRaw` test.
 - `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` is not run here (it needs hyper-evm-lib and
   mainnet). It was run in a project with both libraries (hyper-evm-lib `4eb7ab0`, 2026-11-03): 3
   passed, and the mark test failed with the mark check turned off.
