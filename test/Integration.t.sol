@@ -114,8 +114,8 @@ contract IntegrationTest is Test {
         assertEq(uint8(why), uint8(HLPriceGuard.Breach.RefStale));
     }
 
-    /// Papertrade's first rounds: the book is pushed ~20 bp while the oracle stays. The mid tripwire
-    /// rejects; nothing is counted against the cap.
+    /// A book pushed ~20 bp before the oracle has moved: the mid tripwire rejects, and nothing is
+    /// counted against the cap. (In Papertrade the oracle followed within seconds; see the next test.)
     function test_pushedBookIsRejected() public {
         book(242723, 242800, 243200, 243210);
         (bool ok, HLPriceGuard.Breach why) = _settleReason(1_000_000e18, pythAt(2427e8));

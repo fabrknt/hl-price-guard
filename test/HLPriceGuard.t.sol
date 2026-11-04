@@ -138,7 +138,8 @@ contract HLPriceGuardTest is Test {
         assertEq(h.read(tsla, bounds, none), 352.53e18);
     }
 
-    /// Papertrade's 16 bp round (21:41 UTC): the book is pushed, the oracle is not.
+    /// A 16 bp push, the size of Papertrade's 21:41 UTC round, caught before the oracle follows (in the
+    /// incident the oracle moved 12.7 bp of it within the round; cases/papertrade-20261010).
     function test_papertradeLargePushIsRejected() public {
         uint64 pushed = uint64(242723) * 10016 / 10000;
         setEth(242723, 242612, pushed - 5, pushed + 5);
@@ -147,7 +148,7 @@ contract HLPriceGuardTest is Test {
         assertEq(bps, 16);
     }
 
-    /// Papertrade's 7 bp round passes a 15 bp bound (tighter than the ~25 bp that 2x ETH's US-session max gives). Bounds alone do not stop it, which is
+    /// A 7 bp push, the size of Papertrade's smaller rounds, passes a 15 bp bound (tighter than the ~25 bp that 2x ETH's US-session max gives). Bounds alone do not stop it, which is
     /// why the settled notional has to be capped as well (test_exposureCap*).
     function test_papertradeSmallPushPassesBounds() public {
         uint64 pushed = uint64(242723) * 10007 / 10000;

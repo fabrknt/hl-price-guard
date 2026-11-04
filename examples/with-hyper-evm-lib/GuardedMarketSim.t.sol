@@ -43,7 +43,7 @@ contract GuardedMarketSimTest is HLTest {
         assertEq(uint8(_rejection()), uint8(HLPriceGuard.Breach.MarkOracle));
     }
 
-    /// The book pushed 60 bp while the oracle stays (Papertrade's first rounds pushed ~20 bp; 60
+    /// The book pushed 60 bp before the oracle moves (Papertrade's pushes were up to about 18 bp; 60
     /// leaves room for the live oracle to tick between reads). The exact bp depends on tick rounding
     /// and the live oracle, so the test checks the reason. It can still fail if ETH's oracle moves
     /// more than 15 bp within the test (the mark check then fires first): rerun.

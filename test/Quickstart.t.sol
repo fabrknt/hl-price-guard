@@ -7,8 +7,8 @@ import {HLPriceGuard} from "../src/HLPriceGuard.sol";
 import {GuardedMarket} from "../examples/GuardedMarket.sol";
 
 /// Quickstart: `forge test --match-contract Quickstart -vv`. Plays a normal ETH book, then the
-/// book from Papertrade's first rounds (2026-10-10, cases/papertrade-20261010), where one wallet
-/// pushed HL's ETH book ~20 bp while the oracle stayed.
+/// book pushed 20 bp before the oracle has moved, which the mid check rejects. (In Papertrade,
+/// cases/papertrade-20261010, the oracle followed each push within seconds; that needs the cap.)
 contract QuickstartTest is HLTest {
     GuardedMarket market;
 
