@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 // For a project that already tests with hyper-evm-lib's simulator. Not compiled in this repo
 // (it needs hyper-evm-lib); copy it into your test/ folder. Needs network access: the simulator
 // forks mainnet, and reads the oracle live from mainnet on every call, so the tests leave room for
-// it to move between reads.
+// it to move between reads. (A setter for the oracle is proposed upstream: hyper-evm-lib#38.)
 //
 // Remappings: hl-price-guard/=lib/hl-price-guard/src/  @hyper-evm-lib/=lib/hyper-evm-lib/
 

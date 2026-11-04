@@ -89,7 +89,8 @@ The same contract and test are `examples/GuardedMarket.sol` and `test/Quickstart
 
 Already testing with [hyper-evm-lib](https://github.com/hyperliquid-dev/hyper-evm-lib)'s
 simulator? Its simulator forks mainnet and lets you move the mark (`CoreSimulatorLib.setMarkPx`),
-but it cannot set the oracle and does not model the book: BBO reads go to mainnet. Call
+but it cannot set the oracle (we proposed `setOraclePx`:
+[hyper-evm-lib#38](https://github.com/hyperliquid-dev/hyper-evm-lib/pull/38)) and does not model the book: BBO reads go to mainnet. Call
 `installBboOnly()` after `CoreSimulatorLib.init()` and set the book with `setBbo`; the simulator
 keeps the oracle and mark. `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` plays a calm book,
 the simulator's own +20% mark move, and a book pushed 60 bp against ETH's live oracle. It is
