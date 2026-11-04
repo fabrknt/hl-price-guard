@@ -57,6 +57,15 @@ abstract contract HLTest is Test {
         setBbo(a, bid, ask);
     }
 
+    /// The same, in the precompiles' own units (6 - szDecimals decimals: HYPE 4, BTC 1), for tests that
+    /// already hold prices the way the precompiles return them.
+    function setBookRaw(HLPriceGuard.Asset memory a, uint64 oracle, uint64 mark, uint64 bid, uint64 ask) internal {
+        uint32 perp = HLPrecompiles.perpIndex(a.dex, a.index);
+        HLMockPrecompile(HLPrecompiles.ORACLE_PX).set(perp, abi.encode(oracle));
+        HLMockPrecompile(HLPrecompiles.MARK_PX).set(perp, abi.encode(mark));
+        HLMockPrecompile(HLPrecompiles.BBO).set(HLPrecompiles.bboIndex(a.dex, a.index), abi.encode(bid, ask));
+    }
+
     function setBbo(HLPriceGuard.Asset memory a, uint256 bid, uint256 ask) internal {
         HLMockPrecompile(HLPrecompiles.BBO).set(
             HLPrecompiles.bboIndex(a.dex, a.index), abi.encode(_raw(bid, a), _raw(ask, a))

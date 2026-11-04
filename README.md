@@ -122,7 +122,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
     `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
   - `HLPrecompiles`: raw reads and the two index encodings.
   - `test/HLTest`: a base for testing your own contract locally, with mock precompiles at their
-    real addresses and prices set in 1e18.
+    real addresses and prices set in 1e18 (`setBook`) or in the precompiles' own units (`setBookRaw`,
+    on `main`, not yet tagged).
   - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`,
     private for now), a research launch pool. It uses this library as a git submodule (see Versions).
 - `examples/GuardedMarket.sol`: the smallest contract using the library (tested in `test/Quickstart.t.sol`).
@@ -154,6 +155,21 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   repository is private) and keeps the round trips found as artifacts for 30 days.
   Data files are named by the JST date they were taken; their timestamps are UTC.
 
+## Used in
+Projects of ours that depend on it through a pinned tag, the way an outside app would:
+- [hyperevm-lend](https://github.com/psyto/hyperevm-lend): borrowing and collateral withdrawals go
+  through `HLPriceGuard.read`; liquidation picks the higher of oracle and mark itself (the pattern
+  `lenientPrice` was later added for). Its tests set prices with `HLTest`.
+- [hyperevm-perp](https://github.com/psyto/hyperevm-perp): settles through `read`; liquidation picks
+  oracle or mark itself, as in hyperevm-lend. Tests on `HLTest`.
+- Day One (`fabrknt/dayone`, private): a launch pool on `quote` and `check`, the jump latch
+  (`observe`, `rearm`) and `ExposureBudget.Rolling`. Tests on `HLTest`.
+
+All three moved from `v0.2.1` to `v0.3.0` on 2026-11-04 with no change to their contracts and all
+their tests passing. hyperevm-lend and hyperevm-perp hold their test prices in the precompiles' own
+units and had to convert them for `setBook`, which is where `setBookRaw` came from; Day One kept its
+raw `.set` calls on `HLMockPrecompile`.
+
 ## Status
 **Not for production funds.** The library is unaudited and its caps are first estimates from
 little data; use it for research, test deployments and review.
@@ -177,7 +193,8 @@ purpose, never to the latest commit. Day One pins `v0.2.1`.
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
   "never spent", so `reconfigure` skipped the wait.
 - `v0.2.1` (f18cdd4): the same, with that fix. The version to pin for `Rolling`.
-- `v0.3.0`: `szDecimals` over 6 reverts (`BadSzDecimals`; it used to mis-scale, and overflow from 46);
+- Untagged on `main` since `v0.3.0`: `HLTest.setBookRaw`.
+- `v0.3.0` (b343536): `szDecimals` over 6 reverts (`BadSzDecimals`; it used to mis-scale, and overflow from 46);
   `lenientPrice`, `oracleOnly` and `NoPrice`; `test/HLTest` for testing apps locally, alone or
   inside hyper-evm-lib's simulator (`installBboOnly`, `setBbo`); source files
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).

@@ -36,6 +36,15 @@ contract QuickstartTest is HLTest {
         }
     }
 
+    /// setBookRaw takes the precompiles' units (ETH: 2 decimals) and gives the same book as setBook.
+    function test_setBookRawMatchesSetBook() public {
+        setBookRaw(ETH, 242723, 242612, 242630, 242640);
+        assertEq(market.price(), 2427.23e18);
+        setBookRaw(ETH, 242723, 242800, 243200, 243210);
+        vm.expectRevert(abi.encodeWithSelector(HLPriceGuard.PriceRejected.selector, HLPriceGuard.Breach.MidOracle, 20, 15));
+        market.price();
+    }
+
     function _decode(bytes memory err) internal pure returns (HLPriceGuard.Breach, uint256, uint256) {
         require(bytes4(err) == HLPriceGuard.PriceRejected.selector, "not a guard rejection");
         bytes memory args = new bytes(err.length - 4);
