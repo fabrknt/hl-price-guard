@@ -2,8 +2,8 @@
 
 **If your HyperEVM contract settles, lends, liquidates or mints against Hyperliquid's prices, one
 wallet can move those prices and take the difference.** On 2026-10-10 a wallet spent $130,873 on
-Hyperliquid pushing ETH's book and took $1.28M net from Papertrade, an exchange that settled at
-HL's mid ([`cases/papertrade-20261010`](cases/papertrade-20261010/README.md), rebuilt from public data).
+Hyperliquid pushing ETH's book and was paid $1.41M by Papertrade, an exchange that settled at
+HL's mid: $1.28M net ([`cases/papertrade-20261010`](cases/papertrade-20261010/README.md), rebuilt from public data).
 
 The obvious fixes did not hold up when we replayed it on the same 228 positions:
 
@@ -12,10 +12,11 @@ The obvious fixes did not hold up when we replayed it on the same 228 positions:
 | nothing: settle at HL's best bid/ask mid | $2,052,046 |
 | settle at HL's oracle instead (it moved with the push) | $1,738,919, only 15% less |
 | refuse closes when the mid is over 15 bp from the oracle | refuses 0 of 228 |
-| cap notional settled per minute at $3.3M (`ExposureBudget.Rolling`) | about $55,101, below the $130,873 the push cost |
+| cap notional settled per minute at $3.3M (`ExposureBudget.Rolling`) | about $55,101 (estimate, below), under the $130,873 the push cost |
 
-Take is notional times the price move each rule settles at, the same formula for every row. The cap
-figure is an estimate from this one incident, not a bound (`docs/safe-limits.md`). The other
+Take is notional times the price move each rule settles at. The cap row is not a replay of
+`ExposureBudget.Rolling`: it is the incident's average edge times $3.3M times the 18 minutes with
+closes, an estimate from this one incident and not a bound (`replay_c.py`, `docs/safe-limits.md`). The other
 failure is the oracle itself: on 2026-07-27 a HIP-3 deployer's oracle for xyz:SKHX fell 15.6% in one
 update, then stepped down 1% at a time. Comparing each read with the previous one let 39 prices
 under $1,000 through; the jump latch let none ([`cases/skhx-20260727`](cases/skhx-20260727/README.md)).
@@ -29,7 +30,7 @@ Part of **[Fabrknt for HIP-3](https://fabrknt.com/hip3/index.html)** ([product p
 Try it in a minute, with no key and no funds:
 
 ```bash
-git clone https://github.com/fabrknt/hl-price-guard && cd hl-price-guard
+git clone --recurse-submodules https://github.com/fabrknt/hl-price-guard && cd hl-price-guard
 forge test --match-contract Quickstart -vv
 ```
 ```
@@ -37,8 +38,9 @@ normal book:   accepted at $2427.23
 pushed book:   rejected, mid vs oracle 20 bp, limit 15
 ```
 The second book is pushed 20 bp before the oracle has moved: the case the mid check catches. In
-Papertrade itself the pushes were up to about 18 bp and the oracle followed within seconds (mid–oracle gap
-at close at most 10.2 bp), which is why that incident needs the cap in the table above as well.
+Papertrade itself the mid moved the attacker's way in 16 of 18 rounds (up to about 18 bp), and in
+each of those 16 the oracle moved the same way too (mid–oracle gap at close at most 10.2 bp), which
+is why that incident needs the cap in the table above as well.
 
 Use it in your own Foundry project:
 

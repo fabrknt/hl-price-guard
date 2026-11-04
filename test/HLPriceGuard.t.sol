@@ -139,7 +139,7 @@ contract HLPriceGuardTest is Test {
     }
 
     /// A 16 bp push, the size of Papertrade's 21:41 UTC round, caught before the oracle follows (in the
-    /// incident the oracle moved 12.7 bp of it within the round; cases/papertrade-20261010).
+    /// incident the oracle also moved 12.7 bp the same way over the round; cases/papertrade-20261010).
     function test_papertradeLargePushIsRejected() public {
         uint64 pushed = uint64(242723) * 10016 / 10000;
         setEth(242723, 242612, pushed - 5, pushed + 5);

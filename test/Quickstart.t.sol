@@ -8,7 +8,8 @@ import {GuardedMarket} from "../examples/GuardedMarket.sol";
 
 /// Quickstart: `forge test --match-contract Quickstart -vv`. Plays a normal ETH book, then the
 /// book pushed 20 bp before the oracle has moved, which the mid check rejects. (In Papertrade,
-/// cases/papertrade-20261010, the oracle followed each push within seconds; that needs the cap.)
+/// cases/papertrade-20261010, the oracle moved with the mid in the 16 of 18 rounds where the mid
+/// moved the attacker's way; that needs the cap.)
 contract QuickstartTest is HLTest {
     GuardedMarket market;
 
