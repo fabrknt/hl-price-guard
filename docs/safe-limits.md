@@ -294,6 +294,40 @@ of the call, and the caller picks that moment. When a price at a set time decide
 all. Take that price from an observation no one chooses, such as Pyth's
 `parsePriceFeedUpdatesUnique` (the first update after the time), which anyone can submit later.
 
+**A time-average of a HIP-3 oracle can still follow the book.** Averaging the oracle over the
+last minutes before a set time (a 30-minute TWAP is common) removes a single-update spike, but
+some HIP-3 oracles are built from their own book for long stretches:
+- xyz equities: priced from outside venues while those trade, and from the book at other times:
+  Friday 20:00 to Sunday 20:05 ET and US market holidays. In those hours each update adds a
+  fraction of the impact-price difference (how far the impact bid sits above the oracle, or the
+  impact ask below it, for a set notional), an EMA with a 30-minute time constant.
+- Entropy (`io:`) pre-IPO markets: `oracle = w * I + (1 - w) * E`, where `I` is a 5-minute
+  half-life EMA of the mid and `E` an outside private-market price. `w` grows with fill-weighted
+  depth (each resting order within 2% of the mid counted at `1 / (1 + exp(0.15 * bp from mid))`
+  of its notional, the thinner side taken) and is capped at 0.95; with the published depth
+  constant (`a = 100`) the cap is reached at about $71 of fill-weighted depth, and `io:ANTH` and
+  `io:OAI` each had about $480 of it on 2026-11-04. From three days before an announced listing
+  the oracle is a 1-hour EMA of the mark instead.
+
+What a push holds through the window passes into a 30-minute average ending at the set time, by
+these rules (fraction of the push; our calculation from the published formulas, not observed;
+Entropy's EMAs taken as half-lives, its stated convention, and xyz's 30 minutes as a time
+constant):
+
+| push held from | `io:` pre-IPO, `w` at 0.95 | `io:` last 3 days | xyz, book-built hours |
+|---|---|---|---|
+| 5 min before | 0.04 | 0.00 | 0.01 |
+| 15 min before | 0.28 | 0.02 | 0.11 |
+| 30 min before | 0.73 | 0.10 | 0.37 |
+| 60 min before | 0.95 | 0.35 | 0.77 |
+
+For xyz the push has to lift the impact bid (or lower the impact ask), so it means resting size
+past the oracle, not only taking the other side. In these hours an outside price weighs nothing
+(xyz) or 5% at the cap (Entropy; nothing in its last 3 days), so a reference check has little to
+compare with; cap what one settlement can pay against the book's depth in that window, as in
+section 4. `measure/settle_window.py` records
+the oracles and books around such a window; recordings are scheduled (see README, Status).
+
 **Raw reads return 0.** `HLPrecompiles.oracle` and `mark` return 0 as a price. `read` rejects a
 0 oracle always, and a 0 mark only through the mark–oracle bound (with that bound at 0 it ignores
 the mark). `oracleOnly` reverts with `NoPrice` on a 0 oracle, `lenientPrice` on either. Code that
@@ -325,6 +359,9 @@ far from its oracle: 2,797 bp on 2026-10-18 (oracle 40.48, mark 51.80, book 42.5
       liquidation can leave a debt (section 5); on HIP-3, not on the deployer's oracle alone.
 - [ ] A price at a set time comes from an observation no caller chooses, not from a read at the
       time of the call.
+- [ ] A time-averaged HIP-3 settlement knows whether the oracle is built from its own book in that
+      window (xyz from Friday 20:00 to Sunday 20:05 ET and on US holidays; Entropy pre-IPO
+      always; section 5), and caps what it pays against that book's depth (section 4).
 - [ ] Every direct `HLPrecompiles` read checks for 0, and `szDecimals` is at most 6.
 - [ ] A Hermes API key is arranged before `PythRef` is relied on.
 - [ ] Each check the app relies on has a local test that fails without it (`HLTest` sets the

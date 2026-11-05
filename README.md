@@ -157,7 +157,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
 - `examples/with-hyper-evm-lib/`: the same contract tested inside hyper-evm-lib's simulator.
 - `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
   the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key); then
-  liquidations, prices at a set time and testnet, learned from apps built on the library.
+  liquidations, prices at a set time (including time-averages of HIP-3 oracles that are built
+  from their own book) and testnet, learned from apps built on the library.
 - `docs/c-launch-pool-design.md`: points to Day One, where the launch-pool design now lives.
 - `cases/`: incidents rebuilt from public data. Each is replayed under rules built from this library
   (oracle instead of BBO, deviation tripwire, exposure cap), plus the two-step settlement Day One adds.
@@ -180,6 +181,12 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   stretches collected, and `round-trips-runs-20261017-20261103.txt`, the workflow run IDs).
   `.github/workflows/collect-round-trips.yml` runs both every 6 hours (it skips itself if the
   repository is private) and keeps the round trips found as artifacts for 30 days.
+  `settle_window.py` records every oracle on the core, xyz and `io` dexes and a dozen books about
+  every 10 s (backing off up to 2 minutes after a failed sweep; a request that fails leaves a gap
+  in that row) around a fixed-time settlement (a TWAP ending 20:00 ET, say). `settle_session.sh
+  START END OUT` runs it over a UTC window, `.github/workflows/settle-window.yml` on GitHub, which
+  `dispatch-at.yml` starts at a set time with `target=settle-window`. A run that records nothing,
+  or starts after `END`, fails; one that starts late but before `END` records what is left.
   Data files are named by the JST date they were taken; their timestamps are UTC.
 
 ## Used in
@@ -210,7 +217,11 @@ little data; use it for research, test deployments and review.
   filtered out, mostly because they moved past the recorded book or unwound outside 20 to 120 s.
   0.27 is still one incident's number; how to change the measurement is in `docs/safe-limits.md`
   ("Measuring `C` per asset").
-- Not measured: weekends and volatile sessions.
+- Scheduled: oracles and books from 19:00 to 20:05 ET on Friday 2026-11-06 (xyz equities still
+  priced from outside venues until 20:00), Saturday 11-07 and Sunday 11-08 (priced from their own
+  book). The last 11 minutes of the window ending 20:00 ET on Wednesday 2026-11-04 were recorded
+  locally for comparison.
+- Not measured: volatile sessions; weekend depth for the caps in `docs/safe-limits.md`.
 - Not done: a cost for pushes shorter than a minute; an audit.
 
 ## Versions
