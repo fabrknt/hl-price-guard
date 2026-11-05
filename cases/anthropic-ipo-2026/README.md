@@ -75,9 +75,9 @@ without choosing a count, and the choice moves the answer by more than the sprea
 
 ## Recording
 
-prebell's `listing-watch` Worker reads the Hyperliquid markets, OKX and Bitget every minute from
-2026-11-05 and logs oracle jumps, exchange rebases and markets that appear or disappear; its
-status says where each step above stands (`https://prebell-listing-watch.meowna-server.workers.dev/`,
-the record at `/samples.csv`). Binance answers 403 to Cloudflare, so Binance comes only from a
+A Cloudflare Worker, `listing-watch`, reads the Hyperliquid markets, OKX and Bitget every minute
+from 2026-11-05 and logs oracle jumps, exchange rebases and markets that appear or disappear; its
+status says where each step above stands (`https://listing-watch.meowna-server.workers.dev/`, the
+record at `/samples.csv`). Binance answers 403 to Cloudflare, so Binance comes only from a
 second recorder that started on 2026-11-04 and pauses while its machine sleeps. The replay after
 the event will check each step above against what the oracles actually did.
