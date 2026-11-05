@@ -1,0 +1,57 @@
+# Record HIP-3 oracles and books around a fixed-time settlement window (measure/settle_window.py),
+# e.g. a 30-minute TWAP ending 20:00 ET. Start it on time with dispatch-at.yml (target
+# settle-window); GitHub's cron runs this repository's schedules hours late.
+#   gh workflow run dispatch-at.yml -f target=settle-window -f at=2026-11-07T23:50:00Z \
+#     -f start=2026-11-08T00:00:00Z -f end=2026-11-08T01:05:00Z -f label=settle-20261107-sat
+name: settle-window
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Window start, UTC (e.g. 2026-11-08T00:00:00Z)"
+        required: true
+      end:
+        description: "Window end, UTC (at most 6 hours after start)"
+        required: true
+      label:
+        description: "Artifact label (letters, digits, - and _)"
+        default: test
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    concurrency:
+      group: settle-${{ inputs.label }}
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check inputs
+        env:
+          IN_START: ${{ inputs.start }}
+          IN_END: ${{ inputs.end }}
+          IN_LABEL: ${{ inputs.label }}
+        run: |
+          ts='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
+          [[ $IN_START =~ $ts && $IN_END =~ $ts ]] || { echo "start/end must look like 2026-11-08T00:00:00Z"; exit 1; }
+          [[ $IN_LABEL =~ ^[A-Za-z0-9_-]{1,40}$ ]] || { echo "label: letters, digits, - and _ only"; exit 1; }
+          span=$(( $(date -ud "$IN_END" +%s) - $(date -ud "$IN_START" +%s) ))
+          (( span > 0 && span <= 6 * 3600 )) || { echo "end must be after start, by at most 6 hours"; exit 1; }
+      - name: Record
+        env:
+          START: ${{ inputs.start }}
+          END: ${{ inputs.end }}
+        run: measure/settle_session.sh "$START" "$END" out
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.label }}-${{ github.run_id }}
+          path: out/
+          retention-days: 90
+          if-no-files-found: warn
