@@ -124,7 +124,8 @@ exposure caps. Nothing else: pools, settlement queues, liquidation and UI belong
 it (for example Day One, below), and nothing in this repo depends on any of them.
 
 ## How HL prices reach HyperEVM
-HyperEVM contracts can read HyperCore prices through precompiles:
+HyperEVM contracts can read HyperCore prices through precompiles (how a node exposes its own state to contracts this way is built step by step in
+[Build OpenHL Precompiles](https://fabrknt.com/dojo/courses/building-openhl-precompiles-en), on Reth):
 
 | Precompile | Price | Set by | How hard to move |
 |---|---|---|---|
