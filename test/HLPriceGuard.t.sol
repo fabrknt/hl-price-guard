@@ -57,6 +57,10 @@ contract Harness {
         return HLPriceGuard.lenientPrice(a, long);
     }
 
+    function pythFresh(address p, uint256 maxAge, uint16 maxConfBps) external view returns (HLPriceGuard.Ref memory) {
+        return PythRef.readFresh(IPyth(p), bytes32(0), maxAge, maxConfBps);
+    }
+
     function pyth(address p, uint256 maxAge, uint16 maxConfBps) external view returns (HLPriceGuard.Ref memory) {
         return PythRef.read(IPyth(p), bytes32(0), maxAge, maxConfBps);
     }
@@ -303,6 +307,24 @@ contract HLPriceGuardTest is Test {
         // That stored value is 7.5 hours old: unusable without a same-tx update.
         (HLPriceGuard.Breach reason,) = rejectReason(r);
         assertEq(uint8(reason), uint8(HLPriceGuard.Breach.RefStale));
+    }
+
+    function test_pythFreshAlone() public {
+        MockPyth p = new MockPyth();
+        vm.warp(1_800_000_000);
+        p.setPrice(244053202377, 221997623, -8, block.timestamp - 60);
+        assertEq(h.pythFresh(address(p), 60, 50).price, 2440.53202377e18);
+        p.setPrice(244053202377, 221997623, -8, block.timestamp - 61);
+        vm.expectRevert(abi.encodeWithSelector(PythRef.PythStale.selector, bytes32(0), 61, 60));
+        h.pythFresh(address(p), 60, 50);
+    }
+
+    function test_pythFreshRejectsFuture() public {
+        MockPyth p = new MockPyth();
+        vm.warp(1_800_000_000);
+        p.setPrice(244053202377, 221997623, -8, block.timestamp + 61);
+        vm.expectRevert(abi.encodeWithSelector(PythRef.PythStale.selector, bytes32(0), 61, 60));
+        h.pythFresh(address(p), 60, 50);
     }
 
     function test_pythWideConfidence() public {

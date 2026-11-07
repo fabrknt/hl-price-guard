@@ -110,6 +110,7 @@ their own oracle. For that, add an independent reference, the jump latch and a c
 | read the oracle, reverting when the book or mark has moved away from it | `HLPriceGuard.read` |
 | know why, without reverting (monitoring, pausing) | `HLPriceGuard.check` |
 | check against an independent price | `PythRef` + `maxRefOracleBps` |
+| use Pyth alone, reverting when its price is stale | `PythRef.readFresh` / `updateAndReadFresh` |
 | reject an oracle that jumps, and every small step after | `HLPriceGuard.observe` (`JumpLatch`) |
 | cap how much settles against one price per minute | `ExposureBudget.Rolling` (cap sizes: `docs/safe-limits.md` §4, first estimates from one incident) |
 | liquidate without a wide book holding it back | `HLPriceGuard.lenientPrice` |
@@ -144,7 +145,9 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
     `lenientPrice` gives liquidations the oracle or the mark, whichever favours the position, and
     `oracleOnly` the oracle with no tripwires; both revert on a 0 price (docs/safe-limits.md §5).
   - `PythRef`: Pyth on HyperEVM as the independent reference (it must be updated in the same tx,
-    with update data from Pyth's Hermes, which needs an API key).
+    with update data from Pyth's Hermes, which needs an API key). Without an HL quote, use
+    `readFresh` / `updateAndReadFresh`: they revert with `PythStale` when `publishTime` is more than
+    `maxAge` from the block time, in either direction.
   - `ExposureBudget`: caps notional settled against one price per time window. `Rolling` (use this):
     no stretch of the window settles more than the cap; cap and window change only through
     `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
@@ -240,6 +243,9 @@ purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
 - `v0.3.1` (f151b2d): adds `HLTest.setBookRaw`, for tests that hold prices in the precompiles' own units
   (as hyperevm-lend and hyperevm-perp do). No change to the library contracts.
+- `v0.3.2`: adds `PythRef.readFresh` and `updateAndReadFresh`, for contracts that read Pyth without
+  an HL quote (`read` leaves staleness to `HLPriceGuard.check`, which needs one). No change to existing
+  functions.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values (`HLTest`, the
