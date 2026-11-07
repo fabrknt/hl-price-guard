@@ -202,6 +202,9 @@ Projects of ours that depend on it through a pinned tag, the way an outside app 
   oracle or mark itself, as in hyperevm-lend. Tests on `HLTest`.
 - Day One (`fabrknt/dayone`, private): a launch pool on `quote` and `check`, the jump latch
   (`observe`, `rearm`) and `ExposureBudget.Rolling`. Tests on `HLTest`.
+- Summon (`psyto/summon-stocks`, private for now): backer-funded rounds for tokenized stocks on Base
+  Sepolia, priced from Pyth alone through `PythRef.readFresh`, which was added for it in `v0.3.2`
+  (Summon needed a staleness check without an HL quote).
 
 All three moved from `v0.2.1` to `v0.3.0` on 2026-11-04 with no change to their contracts and all
 their tests passing. hyperevm-lend and hyperevm-perp hold their test prices in the precompiles' own
@@ -230,7 +233,7 @@ little data; use it for research, test deployments and review.
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
-purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1`, Day One `v0.3.0` (Used in).
+purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1`, Day One `v0.3.0`, Summon `v0.3.2` (Used in).
 - `v0.1.0` (b596268): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
 - `v0.2.0` (d996453): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
@@ -243,7 +246,7 @@ purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1
   carry the Apache-2.0 SPDX identifier (they said UNLICENSED).
 - `v0.3.1` (f151b2d): adds `HLTest.setBookRaw`, for tests that hold prices in the precompiles' own units
   (as hyperevm-lend and hyperevm-perp do). No change to the library contracts.
-- `v0.3.2`: adds `PythRef.readFresh` and `updateAndReadFresh`, for contracts that read Pyth without
+- `v0.3.2` (e82819a): adds `PythRef.readFresh` and `updateAndReadFresh`, for contracts that read Pyth without
   an HL quote (`read` leaves staleness to `HLPriceGuard.check`, which needs one). No change to existing
   functions.
 
