@@ -253,7 +253,7 @@ purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1
 - `v0.3.2` (e82819a): adds `PythRef.readFresh` and `updateAndReadFresh`, for contracts that read Pyth without
   an HL quote (`read` leaves staleness to `HLPriceGuard.check`, which needs one). No change to existing
   functions.
-- `v0.4.0`: adds `PythRef.readFirstAfter` (the first Pyth update at or after a set time, through
+- `v0.4.0` (4d6a832): adds `PythRef.readFirstAfter` (the first Pyth update at or after a set time, through
   `parsePriceFeedUpdatesUnique`) and `PythRef.toRef`; `IPyth` gains `PriceFeed` and
   `parsePriceFeedUpdatesUnique`. `read` now calls `toRef`, with the same result. A minor version because
   `IPyth` grew: a contract that implements it must add the new function.
