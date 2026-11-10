@@ -111,6 +111,7 @@ their own oracle. For that, add an independent reference, the jump latch and a c
 | know why, without reverting (monitoring, pausing) | `HLPriceGuard.check` |
 | check against an independent price | `PythRef` + `maxRefOracleBps` |
 | use Pyth alone, reverting when its price is stale | `PythRef.readFresh` / `updateAndReadFresh` |
+| take the price at a set time, from a print no caller can choose | `PythRef.readFirstAfter` |
 | reject an oracle that jumps, and every small step after | `HLPriceGuard.observe` (`JumpLatch`) |
 | cap how much settles against one price per minute | `ExposureBudget.Rolling` (cap sizes: `docs/safe-limits.md` §4, first estimates from one incident) |
 | liquidate without a wide book holding it back | `HLPriceGuard.lenientPrice` |
@@ -147,7 +148,9 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - `PythRef`: Pyth on HyperEVM as the independent reference (it must be updated in the same tx,
     with update data from Pyth's Hermes, which needs an API key). Without an HL quote, use
     `readFresh` / `updateAndReadFresh`: they revert with `PythStale` when `publishTime` is more than
-    `maxAge` from the block time, in either direction.
+    `maxAge` from the block time, in either direction. When a price at a set time decides who gets
+    paid, `readFirstAfter(at, window)` takes the first update published at or after `at` (Pyth's
+    `parsePriceFeedUpdatesUnique`), so the caller cannot pick one print from several.
   - `ExposureBudget`: caps notional settled against one price per time window. `Rolling` (use this):
     no stretch of the window settles more than the cap; cap and window change only through
     `reconfigure`. `Window`: the older fixed window, which lets up to `2 * cap` through across a reset.
@@ -204,7 +207,8 @@ Projects of ours that depend on it through a pinned tag, the way an outside app 
   (`observe`, `rearm`) and `ExposureBudget.Rolling`. Tests on `HLTest`.
 - Summon (`psyto/summon-stocks`, private for now): backer-funded rounds for tokenized stocks on Base
   Sepolia, priced from Pyth alone through `PythRef.readFresh`, which was added for it in `v0.3.2`
-  (Summon needed a staleness check without an HL quote).
+  (Summon needed a staleness check without an HL quote), and fills through `PythRef.readFirstAfter`,
+  added for it in `v0.4.0` (a review found that a filler could choose among several fresh prints).
 
 All three moved from `v0.2.1` to `v0.3.0` on 2026-11-04 with no change to their contracts and all
 their tests passing. hyperevm-lend and hyperevm-perp hold their test prices in the precompiles' own
@@ -249,6 +253,10 @@ purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1
 - `v0.3.2` (e82819a): adds `PythRef.readFresh` and `updateAndReadFresh`, for contracts that read Pyth without
   an HL quote (`read` leaves staleness to `HLPriceGuard.check`, which needs one). No change to existing
   functions.
+- `v0.4.0`: adds `PythRef.readFirstAfter` (the first Pyth update at or after a set time, through
+  `parsePriceFeedUpdatesUnique`) and `PythRef.toRef`; `IPyth` gains `PriceFeed` and
+  `parsePriceFeedUpdatesUnique`. `read` now calls `toRef`, with the same result. A minor version because
+  `IPyth` grew: a contract that implements it must add the new function.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values (`HLTest`, the
@@ -265,7 +273,9 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
 - `test/Properties.t.sol`: fuzz tests that `check` never passes a price outside an enabled bound
   and never reports a breach within one, that `diffBps` rounds up, and that the jump latch moves
   its anchor only on an accepted read, that `lenientPrice` returns one of the two feeds and the one
-  on the position's side; `PythRef.updateAndRead` paying the fee and reading the update.
+  on the position's side; `PythRef.updateAndRead` paying the fee and reading the update;
+  `PythRef.readFirstAfter` taking the first update after the time and refusing a later print, one past
+  the window, or a wide confidence.
 - `test/Quickstart.t.sol`: `examples/GuardedMarket.sol` on a normal ETH book (accepted) and on
   Papertrade's pushed book (rejected), through `HLTest`; shown to fail with the mid check turned off.
   The Quickstart's install steps were run in a fresh Foundry project (`forge install` of `v0.3.0`

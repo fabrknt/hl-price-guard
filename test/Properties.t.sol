@@ -44,7 +44,50 @@ contract FeePyth {
     }
 }
 
+/// Pyth's parsePriceFeedUpdatesUnique: each update is abi.encode(int64 price, uint64 conf,
+/// uint64 publishTime, uint64 prevPublishTime). It returns the first update with
+/// prevPublishTime < min <= publishTime <= max, as Pyth does, and reverts when there is none.
+contract UniquePyth {
+    uint256 public feePerUpdate;
+    uint256 public received;
+
+    constructor(uint256 fee) {
+        feePerUpdate = fee;
+    }
+
+    function getUpdateFee(bytes[] calldata updateData) external view returns (uint256) {
+        return updateData.length * feePerUpdate;
+    }
+
+    function parsePriceFeedUpdatesUnique(bytes[] calldata updateData, bytes32[] calldata ids, uint64 min, uint64 max)
+        external
+        payable
+        returns (IPyth.PriceFeed[] memory f)
+    {
+        require(msg.value == updateData.length * feePerUpdate, "fee");
+        received += msg.value;
+        f = new IPyth.PriceFeed[](1);
+        for (uint256 i; i < updateData.length; i++) {
+            (int64 price, uint64 conf, uint64 t, uint64 prev) =
+                abi.decode(updateData[i], (int64, uint64, uint64, uint64));
+            if (prev < min && min <= t && t <= max) {
+                f[0].id = ids[0];
+                f[0].price = IPyth.Price(price, conf, -8, t);
+                return f;
+            }
+        }
+        revert("PriceFeedNotFoundWithinRange");
+    }
+}
+
 contract PythCaller {
+    function readFirstAfter(IPyth pyth, bytes[] calldata data, uint64 at, uint64 window, uint16 maxConfBps)
+        external
+        returns (HLPriceGuard.Ref memory)
+    {
+        return PythRef.readFirstAfter(pyth, data, bytes32(uint256(1)), at, window, maxConfBps);
+    }
+
     function updateAndRead(IPyth pyth, bytes[] calldata data, uint256 maxAge)
         external
         returns (HLPriceGuard.Ref memory)
@@ -100,7 +143,9 @@ contract PropertiesTest is Test {
         HLPriceGuard.Bounds memory b = HLPriceGuard.Bounds(lim[0] % 300, lim[1] % 300, lim[2] % 300, lim[3] % 300);
         HLPriceGuard.Ref memory r;
         if (refPrice % 3 != 0) {
-            r = HLPriceGuard.Ref(_move(oracle, int256(refPrice % 1001) - 500), block.timestamp - bound(refAge, 0, 120), 60);
+            r = HLPriceGuard.Ref(
+                _move(oracle, int256(refPrice % 1001) - 500), block.timestamp - bound(refAge, 0, 120), 60
+            );
         }
 
         (HLPriceGuard.Breach why, uint256 seen, uint256 limit) = HLPriceGuard.check(q, b, r);
@@ -112,7 +157,9 @@ contract PropertiesTest is Test {
             if (b.maxMidOracleBps != 0) assertLe(HLPriceGuard.diffBps(m, q.oracle), b.maxMidOracleBps, "mid");
             if (r.price != 0) {
                 assertLe(block.timestamp, r.updatedAt + r.maxAge, "ref age");
-                if (b.maxRefOracleBps != 0) assertLe(HLPriceGuard.diffBps(q.oracle, r.price), b.maxRefOracleBps, "ref");
+                if (b.maxRefOracleBps != 0) {
+                    assertLe(HLPriceGuard.diffBps(q.oracle, r.price), b.maxRefOracleBps, "ref");
+                }
             }
         } else if (why != HLPriceGuard.Breach.EmptyBook) {
             assertGt(seen, limit, "breach over its limit");
@@ -165,6 +212,49 @@ contract PropertiesTest is Test {
         assertTrue(px == o18 || px == m18, "one of the two feeds");
         if (long) assertTrue(px >= o18 && px >= m18, "long: no lower than either");
         else assertTrue(px <= o18 && px <= m18, "short: no higher than either");
+    }
+
+    // ---- PythRef.readFirstAfter ----
+
+    function _u(int64 price, uint64 conf, uint64 t, uint64 prev) internal pure returns (bytes[] memory d) {
+        d = new bytes[](1);
+        d[0] = abi.encode(price, conf, t, prev);
+    }
+
+    function test_readFirstAfterTakesTheFirstUpdateAtOrAfterTheTime() public {
+        UniquePyth pyth = new UniquePyth(7 wei);
+        PythCaller c = new PythCaller();
+        vm.deal(address(c), 1 ether);
+        // published at 1003, the one before it at 998: the first update at or after 1000
+        HLPriceGuard.Ref memory r = c.readFirstAfter(IPyth(address(pyth)), _u(2427e8, 1e8, 1003, 998), 1000, 10, 50);
+        assertEq(r.price, 2427e18);
+        assertEq(r.updatedAt, 1003);
+        assertEq(r.maxAge, 10);
+        assertEq(pyth.received(), 7 wei, "fee from the caller's balance");
+    }
+
+    function test_readFirstAfterRefusesALaterPrint() public {
+        UniquePyth pyth = new UniquePyth(0);
+        PythCaller c = new PythCaller();
+        // published at 1005, but the one before it (1003) was also after 1000: the caller is choosing
+        vm.expectRevert(bytes("PriceFeedNotFoundWithinRange"));
+        c.readFirstAfter(IPyth(address(pyth)), _u(2500e8, 1e8, 1005, 1003), 1000, 10, 50);
+    }
+
+    function test_readFirstAfterRefusesAnUpdatePastTheWindow() public {
+        UniquePyth pyth = new UniquePyth(0);
+        PythCaller c = new PythCaller();
+        vm.expectRevert(bytes("PriceFeedNotFoundWithinRange"));
+        c.readFirstAfter(IPyth(address(pyth)), _u(2427e8, 1e8, 1011, 998), 1000, 10, 50);
+    }
+
+    function test_readFirstAfterChecksTheConfidence() public {
+        UniquePyth pyth = new UniquePyth(0);
+        PythCaller c = new PythCaller();
+        vm.expectRevert(
+            abi.encodeWithSelector(PythRef.PythConfTooWide.selector, bytes32(uint256(1)), uint256(84), uint256(50))
+        );
+        c.readFirstAfter(IPyth(address(pyth)), _u(1200e8, 10e8, 1003, 998), 1000, 10, 50);
     }
 
     // ---- PythRef.updateAndRead ----
