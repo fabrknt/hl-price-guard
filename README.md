@@ -257,6 +257,8 @@ purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1
   `parsePriceFeedUpdatesUnique`) and `PythRef.toRef`; `IPyth` gains `PriceFeed` and
   `parsePriceFeedUpdatesUnique`. `read` now calls `toRef`, with the same result. A minor version because
   `IPyth` grew: a contract that implements it must add the new function.
+- `v0.4.1` (edbee7e): renames a local in `ExposureBudget.spend(Window ...)` that shadowed `used(Rolling)`,
+  removing solc warning 2519 for consumers. No behaviour change.
 
 ## Tests
 `forge test`. Precompiles are mocked at their real addresses with mainnet values (`HLTest`, the
