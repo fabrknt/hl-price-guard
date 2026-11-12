@@ -50,9 +50,9 @@ library ExposureBudget {
             w.start = uint64(block.timestamp);
             w.used = 0;
         }
-        uint256 used = w.used;
-        if (used + notional > cap) revert BudgetExceeded(used, notional, cap);
-        w.used = uint192(used + notional);
+        uint256 spent = w.used;
+        if (spent + notional > cap) revert BudgetExceeded(spent, notional, cap);
+        w.used = uint192(spent + notional);
     }
 
     function spend(Rolling storage r, uint256 notional, uint256 cap, uint64 windowSecs) internal {
