@@ -127,7 +127,7 @@ it (for example Day One, below), and nothing in this repo depends on any of them
 
 ## How HL prices reach HyperEVM
 HyperEVM contracts can read HyperCore prices through precompiles (how a node exposes its own state to contracts this way is built step by step in
-[Build OpenHL Precompiles](https://fabrknt.com/dojo/courses/building-openhl-precompiles-en), on Reth):
+[Build OpenHL Precompiles](https://fabrknt.com/dojo/courses/building-openhl-precompiles-en), on Reth; how to call them from a contract, with asset indexes and gas cost, is in the lesson [Reading HyperCore State from HyperEVM](https://fabrknt.com/hip3/learn/hyperevm-development/04-l1-precompiles.html)):
 
 | Precompile | Price | Set by | How hard to move |
 |---|---|---|---|
