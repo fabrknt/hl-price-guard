@@ -71,6 +71,7 @@ mode cannot run them) and lets you set prices in 1e18:
 ```solidity
 import {HLTest} from "hl-price-guard/test/HLTest.sol";
 import {HLPriceGuard} from "hl-price-guard/HLPriceGuard.sol";
+import {MyMarket} from "../src/MyMarket.sol"; // MyMarket above, saved as src/MyMarket.sol
 
 contract MyMarketTest is HLTest {
     function setUp() public { installHL(); }
