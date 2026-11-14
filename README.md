@@ -239,7 +239,7 @@ little data; use it for research, test deployments and review.
 
 ## Versions
 Tagged `vX.Y.Z`. Apps should pin a tag (as a git submodule at that tag) and move to a new tag on
-purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1`, Day One `v0.4.1`, Summon `v0.3.2` (Used in).
+purpose, never to the latest commit. hyperevm-lend and hyperevm-perp pin `v0.3.1`, Day One and Shadowbook `v0.4.1`, Summon `v0.4.0` (Used in).
 - `v0.1.0` (b596268): `HLPriceGuard`, `PythRef`, `JumpLatch`, `ExposureBudget` (fixed window).
 - `v0.2.0` (d996453): adds `ExposureBudget.Rolling`, a cap that no stretch of the window can exceed,
   and `reconfigure` that waits on the last spend. Do not pin: a spend at timestamp 0 was treated as
