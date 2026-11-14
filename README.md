@@ -159,8 +159,8 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - `test/HLTest`: a base for testing your own contract locally, with mock precompiles at their
     real addresses and prices set in 1e18 (`setBook`) or in the precompiles' own units (`setBookRaw`,
     on `main`, not yet tagged).
-  - Apps built on it live in their own repos. One is Day One — Fabrknt Labs (`fabrknt/dayone`,
-    private for now), a research launch pool. It uses this library as a git submodule (see Versions).
+  - Apps built on it live in their own repos. One is Day One — Fabrknt Labs ([`fabrknt/dayone`](https://github.com/fabrknt/dayone)),
+    a research launch pool. It uses this library as a git submodule (see Versions).
 - `examples/GuardedMarket.sol`: the smallest contract using the library (tested in `test/Quickstart.t.sol`).
 - `examples/with-hyper-evm-lib/`: the same contract tested inside hyper-evm-lib's simulator.
 - `docs/safe-limits.md`: which price to use, how to set the bounds, how to size the cap, and what
@@ -204,9 +204,9 @@ Projects of ours that depend on it through a pinned tag, the way an outside app 
   `lenientPrice` was later added for). Its tests set prices with `HLTest`.
 - [hyperevm-perp](https://github.com/psyto/hyperevm-perp): settles through `read`; liquidation picks
   oracle or mark itself, as in hyperevm-lend. Tests on `HLTest`.
-- Day One (`fabrknt/dayone`, private): a launch pool on `quote` and `check`, the jump latch
+- [Day One](https://github.com/fabrknt/dayone): a launch pool on `quote` and `check`, the jump latch
   (`observe`, `rearm`) and `ExposureBudget.Rolling`. Tests on `HLTest`.
-- Summon (`psyto/summon-stocks`, private for now): backer-funded rounds for tokenized stocks on Base
+- [Summon](https://github.com/psyto/summon-stocks): backer-funded rounds for tokenized stocks on Base
   Sepolia, priced from Pyth alone through `PythRef.readFresh`, which was added for it in `v0.3.2`
   (Summon needed a staleness check without an HL quote), and fills through `PythRef.readFirstAfter`,
   added for it in `v0.4.0` (a review found that a filler could choose among several fresh prints).
@@ -215,7 +215,8 @@ All three moved from `v0.2.1` to `v0.3.0` on 2026-11-04 with no change to their 
 their tests passing. hyperevm-lend and hyperevm-perp hold their test prices in the precompiles' own
 units and had to convert them for `setBook`, which is where `setBookRaw` came from; both moved to
 `v0.3.1` the same day and now pass those units straight to `setBookRaw`. Day One kept its raw `.set`
-calls on `HLMockPrecompile` and stays on `v0.3.0`.
+calls on `HLMockPrecompile` and moved to `v0.4.1` on 2026-11-14 (no contract change, all tests passing).
+Summon pins `v0.4.0`, and [Shadowbook](https://github.com/fabrknt/shadowbook) pins `v0.4.1`.
 
 ## Status
 **Not for production funds.** The library is unaudited and its caps are first estimates from
