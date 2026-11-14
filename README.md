@@ -45,7 +45,7 @@ is why that incident needs the cap in the table above as well.
 Use it in your own Foundry project:
 
 ```bash
-forge install fabrknt/hl-price-guard@v0.3.1
+forge install fabrknt/hl-price-guard@v0.4.1
 echo 'hl-price-guard/=lib/hl-price-guard/src/' >> remappings.txt
 ```
 The second line pins where `hl-price-guard/` imports resolve. Without it, Foundry guesses from the
@@ -282,7 +282,7 @@ the suite on pushes to `main` and pull requests, and the live check then and dai
   Papertrade's pushed book (rejected), through `HLTest`; shown to fail with the mid check turned off.
   The Quickstart's install steps were run in a fresh Foundry project (`forge install` of `v0.3.0`
   from GitHub, forge 1.7.1) and the README test passed there; repeated for `v0.3.1` with a
-  `setBookRaw` test.
+  `setBookRaw` test, and for `v0.4.1` (2026-11-14, forge 1.7.1, the README contract and test as written).
 - `examples/with-hyper-evm-lib/GuardedMarketSim.t.sol` is not run here (it needs hyper-evm-lib and
   mainnet). It was run in a project with both libraries (hyper-evm-lib `4eb7ab0`, 2026-11-03): 3
   passed, and the mark test failed with the mark check turned off.
