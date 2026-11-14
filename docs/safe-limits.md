@@ -89,7 +89,7 @@ On HyperEVM testnet Pyth is at `0x2880aB155794e7179c9eE2e38200202908C17B43` and 
 was 0.
 
 For stocks, the reference stops at the close while the HL oracle keeps moving. Our operations
-repo (hip3-ops, not yet public, so these numbers cannot be rerun from here) measured this on xyz
+repo ([fabrknt/hip3-ops](https://github.com/fabrknt/hip3-ops)) measured this on xyz
 markets: in trading hours the gap to RedStone reached 76 bp (p99 9.6 bp); out of
 hours it reached 484 bp. A first estimate is 150 bp in trading hours and no deviation check out
 of hours. US trading hours are not yet measured.
