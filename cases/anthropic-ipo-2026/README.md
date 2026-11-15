@@ -61,6 +61,29 @@ paused while the machine slept). Exchange median = median of Binance `ANTHROPICU
 Before the count is known, the per-share markets and the market-cap markets cannot be compared
 without choosing a count, and the choice moves the answer by more than the spread between venues.
 
+## So far (read 2026-11-15 03:00 UTC)
+
+**Step 1 happened.** S-1/A-2 was filed on 2026-11-10 ([EDGAR, accession 0001628280-26-072484](https://www.sec.gov/Archives/edgar/data/2130357/000162828026072484/)).
+Its fee table registers 948,750,000 Class A shares at a $78.00 maximum, including the underwriters'
+option of 123,750,000; press reports give the range as $70–78.
+
+- **OKX rebased.** From an estimated 10,000,000,000 shares to 13,116,075,288 at 2026-11-12 17:30
+  UTC+8 ([OKX notice](https://www.okx.com/en-us/help/okx-to-execute-a-rebase-on-anthropic-perpetuals-and-x-perp)).
+  OKX says this count is shares outstanding after the offering and the concurrent placement, and
+  "not a fully diluted share count": options, RSUs and reserves are left out. `listing-watch`
+  logged the step at 10:10:03 UTC as `136.73 -> 104.24 (-23.76%) in 60s`, a ratio of 1.3117
+  against OKX's 1.3116. A reference check comparing OKX before and after would have read a 24% crash.
+- **Binance has not rebased yet.** It still quotes `ANTHROPICUSDT` on 1B and has announced a move
+  to about 13.1B under a new symbol, `ANTUSDT`
+  ([PANews](https://panews.io/articles/01a1d4bf-447f-7150-8ff3-635e29a53de3)).
+- **Two counts, not one.** At listing `io:ANTH` uses the fully diluted, as-converted count from the
+  424(b); OKX, and Binance once it moves, use shares outstanding. Before the 424(b) the difference
+  is unknown, but at today's prices `io:ANTH` (1,771.7, i.e. $1.77T) and OKX × 13.116B ($1.34T)
+  are 32% apart. Part of that gap is the count, not a disagreement about price.
+- **Listing date.** Pricing on 11-18 and first trade on 11-19 are reported (citing CNBC), not
+  announced by Anthropic in anything read here. If Entropy treats 11-19 as the announced date,
+  `io:ANTH` enters step 2 on 11-16.
+
 ## What this means for a contract that reads these oracles
 
 - `HLPriceGuard.JumpLatch` trips at steps 3 and 4 by design and stays tripped: the oracle does not
@@ -78,6 +101,8 @@ without choosing a count, and the choice moves the answer by more than the sprea
 A Cloudflare Worker, `listing-watch`, reads the Hyperliquid markets, OKX and Bitget every minute
 from 2026-11-05 and logs oracle jumps, exchange rebases and markets that appear or disappear; its
 status says where each step above stands (`https://listing-watch.meowna-server.workers.dev/`, the
-record at `/samples.csv`). Binance answers 403 to Cloudflare, so Binance comes only from a
-second recorder that started on 2026-11-04 and pauses while its machine sleeps. The replay after
+record at `/samples.csv`). Binance answers 403 to Cloudflare, and by 2026-11-15 Bitget did too,
+so both come only from a second recorder, which pauses while its machine sleeps. It ran
+2026-11-04 to 11-11 and again from 11-15 to 11-21; from 11-15 it stores each venue's price as
+quoted, with no basis applied, so a rebase cannot be written into the record. The replay after
 the event will check each step above against what the oracles actually did.
