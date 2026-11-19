@@ -5,7 +5,7 @@ still leaves the price range and share count blank. It plans to list Class A on 
 listing date is announced: press reports name the week of 11-16 or of 11-23, and trade.xyz lists
 2026-11-20 "for reference only". This file says what each Hyperliquid market's own rules do to its
 oracle on the way to the listing, so a contract reading these prices can tell a scheduled change
-from a bad price. After the listing it will be replayed like the other cases.
+from a bad price. The listing came on 2026-11-19; "What happened" replays it.
 
 ## The markets (read 2026-11-05)
 
@@ -84,12 +84,55 @@ option of 123,750,000; press reports give the range as $70–78.
   announced by Anthropic in anything read here. If Entropy treats 11-19 as the announced date,
   `io:ANTH` enters step 2 on 11-16.
 
+## What happened (replayed 2026-11-20)
+
+Anthropic priced at $83 on 11-18. `ANT`'s first trade, out of Nasdaq's opening auction, was $111.50
+at about 11:48 ET (16:48 UTC) on 11-19, more than two hours after the 9:30 open; it closed at $97.17
+([CBS News](https://www.cbsnews.com/news/anthropic-ipo-nasdaq-debut-claude-ai/),
+[TechRepublic](https://www.techrepublic.com/article/news-anthropic-ipo-nasdaq-trading-debut/)).
+Record: `listing-watch` for the three Hyperliquid markets, and the second recorder for Binance
+`ANTUSDT`, Bitget and OKX, every minute from 11-18 22:00 UTC (Binance from 23:30) to 11-20, with no
+gap in Binance from 13:30 to 21:00 UTC on 11-19.
+
+| step | expected | what the oracles did |
+|---|---|---|
+| 3. IPO price ($83) | Paragon may reset to it; Binance blends its mark toward it | nothing moved toward $83. Every venue stayed near $98 that night, 18% above. Binance's mark equalled its index (its own trades) all day, so no blend showed; Paragon did not reset |
+| 4. first opening trade | `io:ANTH` jumps from its own EMA to open × count ÷ 1e9 | no step: `io:ANTH` was 1,955.8 at 16:47 and 1,961.9 at 16:48. The exchange perps were already at about 111.2, 0.3% under the open |
+| 5. external feed | `xyz:ANT` and `para:ANTH` switch | `xyz:ANT` at 16:50 (2 min after the open): 108.11 → 110.8, +2.5%. `para:ANTH` at 17:03 (15 min): 108.58 → 102.72, −5.4%, the largest by-rule step of the day |
+| (exchanges) | — | Binance's index left its own trades at 17:06 (mark ≠ index from then). OKX changed the contract from `pre_market` to `normal` at 18:00 |
+
+- **The count.** After the open, `io:ANTH` ÷ `xyz:ANT` holds at 17.6 (17.627 at 16:51, 17.616 at
+  21:00), so Entropy is using about 17.6B shares. The analysts' 16.9B and 17.3B read from S-1/A-1
+  were 4% and 2% low; OKX and Binance quote on 13.1B. A reference check that converts one into the
+  other with the wrong count is off by that much before any price moves.
+- **The steps that hurt were the internal oracles catching up.** Both per-share markets ran their
+  own EMA during the opening auction, below a perp market that had already priced the open.
+  `xyz:ANT` caught up fast; `para:ANTH` held its EMA through the post-open drop and stepped down
+  5.4% a quarter of an hour later. A 5% latch fires on Paragon's step and on none of the others.
+- **The exchanges agreed.** From 13:30 to 21:00 UTC (451 minutes with all three quotes) the spread
+  between Binance's mark, Bitget's last and OKX's last was a median 11 bp of their median, 33 bp at
+  the 95th percentile, and 247 bp at worst (16:51, OKX's last 108.0 against 110.7 and 110.1, in the
+  minute the price fell from the open). At 21:00 UTC they were 97.13, 97.00 and 97.09 against the
+  $97.17 close.
+- **The perps priced the first trade, not the offering.** The night before, every venue was at $98
+  against the $83 price; through the auction they climbed from about 104 to 111.2. Using the
+  offering price as the reference, as step 3 assumes Paragon and Binance would, would have been 25%
+  off.
+
+The quotes themselves are third-party API data and are not published; the scripts and the dated
+record that produced the numbers above are in
+[fabrknt/research, 2026-11-18-anthropic-listing-quotes](https://github.com/fabrknt/research/tree/main/2026-11-18-anthropic-listing-quotes).
+
 ## What this means for a contract that reads these oracles
 
-- `HLPriceGuard.JumpLatch` trips at steps 3 and 4 by design and stays tripped: the oracle does not
-  come back to the old anchor. Call `rearm` only once an independent price agrees with the new
-  oracle: for `io:ANTH`, the Nasdaq `ANT` price × the published count ÷ 1e9; for `xyz:ANT` and
-  `para:ANTH`, the Nasdaq price.
+- The steps a latch has to expect on a listing day are the switches from internal to external
+  pricing (here +2.5% and −5.4%, minutes after the first trade), not the offering price or the
+  first trade itself. Size the threshold to the gap between an internal EMA and the live market,
+  and expect the slow converter to step last.
+- `HLPriceGuard.JumpLatch` stays tripped after such a step: the oracle does not come back to the
+  old anchor. Call `rearm` only once an independent price agrees with the new oracle: for
+  `io:ANTH`, the Nasdaq `ANT` price × the count Entropy uses (about 17.6B here) ÷ 1e9; for
+  `xyz:ANT` and `para:ANTH`, the Nasdaq price.
 - During step 2 there is no independent price for `io:ANTH` at all. A reference check
   (`maxRefOracleBps`) has nothing to compare with; treat the market as unpriced rather than as
   priced by its own book.
@@ -104,5 +147,8 @@ status says where each step above stands (`https://listing-watch.meowna-server.w
 record at `/samples.csv`). Binance answers 403 to Cloudflare, and by 2026-11-15 Bitget did too,
 so both come only from a second recorder, which pauses while its machine sleeps. It ran
 2026-11-04 to 11-11 and again from 11-15 to 11-21; from 11-15 it stores each venue's price as
-quoted, with no basis applied, so a rebase cannot be written into the record. The replay after
-the event will check each step above against what the oracles actually did.
+quoted, with no basis applied, so a rebase cannot be written into the record. "What happened"
+above is the replay of the steps against what the oracles did.
+
+Replayed with an AI (Claude), which wrote the scripts, lined up the records and drafted this
+section; the numbers were checked minute by minute against both records. Not financial advice.

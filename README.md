@@ -173,6 +173,9 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   - Papertrade, 2026-10-10: one wallet moved HL's ETH mid and settled 500x positions against it.
     The Binance comparison fetches Binance's public klines; save them once to rerun offline.
   - xyz:SKHX, 2026-07-27: the deployer's oracle fell 15.6% in one update, then stepped down.
+  - Anthropic's IPO, 2026-11-19: four HIP-3 oracles that change by rule on the way to a listing,
+    written before it and replayed after. The largest step was Paragon's switch to an external feed
+    (−5.4%, 15 minutes after the first trade), not the offering price or the first trade.
 - `measure/`: `normal_gaps.py` samples the gaps the guard checks; `safe_caps.py` turns book
   depth into a per-minute exposure cap per asset (calibrated on Papertrade, one incident: a first
   estimate). Both save as they go; `safe_caps.py summary OUT.json` re-prints per UTC hour.
