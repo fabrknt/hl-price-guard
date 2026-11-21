@@ -94,6 +94,14 @@ markets: in trading hours the gap to RedStone reached 76 bp (p99 9.6 bp); out of
 hours it reached 484 bp. A first estimate is 150 bp in trading hours and no deviation check out
 of hours. US trading hours are not yet measured.
 
+A Korean or Japanese stock with a US listing has a rough reference out of its home hours: the
+ADR's last close (on Pyth) times a ratio fitted on recent sessions. For SK Hynix (SKHY) it missed
+the next KRX open by 3.2% on average and 9.8% at most over 79 sessions, so the band is wide
+(1000 bp), but replayed on the 2026-07-27 incident it refused every update under $1,000 with no
+anchor and no `rearm` (cases/skhx-20260727, `test_adrReferenceOnSkhx`). It refuses an oracle
+outside the band while the reference is within `maxAge`; it is a bound, not a price to settle
+on.
+
 **Jumps (`JumpLatch`).** Keep the last accepted oracle as an anchor and reject any read more
 than `maxJumpBps` from it. On xyz the deployer's oracle moved at most 66 bp within 90 s in the
 hip3-ops sample, so 200 bp is a first estimate.
@@ -262,7 +270,8 @@ them. A HIP-3 oracle is posted by the deployer, and whoever holds that key can p
 that is not a cost an attacker pays, and no book-derived cap offsets it. Settle on a HIP-3 oracle
 only while a fresh independent reference agrees with it (section 3); when none can be fresh, as
 for stocks out of hours, pause price-sensitive settlement or fall back to an explicitly governed
-rule. The cap then limits only what a book push adds on top.
+rule (for a stock with a US-listed ADR, a wide band around the ADR's close, section 3). The cap
+then limits only what a book push adds on top.
 
 ## 5. Liquidations, prices at a set time, testnet
 Learned from apps built on this library (psyto/hyperevm-lend, psyto/hyperevm-perp and others).

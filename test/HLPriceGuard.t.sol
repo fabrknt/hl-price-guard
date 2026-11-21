@@ -286,6 +286,42 @@ contract HLPriceGuardTest is Test {
         assertEq(accepted, 100); // same as P3 in replay_c.py
     }
 
+    /// The same 144 updates against an out-of-hours reference: SK Hynix's Nasdaq ADS (SKHY, listed
+    /// 2026-07-10) closed at $143.02 at 20:00 UTC, times k = 7.7967 (median SKHX-in-USD open per
+    /// SKHY prior close over the 10 KRX sessions before, cases/skhx-20260727/adr_ref.py): $1,115.09,
+    /// three hours old. No update under $1,000 passes either band, and unlike the latch the check
+    /// needs no anchor from before the incident and no rearm after a real gap.
+    function test_adrReferenceOnSkhx() public {
+        assertEq(replayAdr(1000), 104); // the latch accepts 100 (test_jumpLatchOnSkhx)
+        assertEq(replayAdr(500), 61);
+    }
+
+    function replayAdr(uint16 bandBps) internal returns (uint256 accepted) {
+        string memory json = vm.readFile("cases/skhx-20260727/skhx-oracle.json");
+        HLPriceGuard.Asset memory skhx = HLPriceGuard.Asset({dex: 0, index: 1, szDecimals: 4}); // mock slot
+        HLPriceGuard.Bounds memory band = HLPriceGuard.Bounds(0, 0, 0, bandBps);
+        vm.warp(1785193200); // 2026-07-27 23:00 UTC for every update: the fixture runs 22:57:36-23:04:45, all within maxAge
+        HLPriceGuard.Ref memory adr = HLPriceGuard.Ref(1115.09e18, 1785182400, 4 hours);
+        for (uint256 i; i < 144; i++) {
+            uint64 px = uint64(vm.parseJsonUint(json, string.concat(".updates[", vm.toString(i), "][3]")));
+            setEth(px, px, px - 1, px + 1);
+            uint256 bps = HLPriceGuard.diffBps(uint256(px) * 1e16, adr.price);
+            try h.read(skhx, band, adr) returns (uint256 got) {
+                assertEq(got, uint256(px) * 1e16);
+                assertLe(bps, bandBps);
+                assertGe(px, 1000_00);
+                accepted++;
+            } catch (bytes memory err) {
+                assertEq(bytes4(err), HLPriceGuard.PriceRejected.selector);
+                (HLPriceGuard.Breach why, uint256 observed,) =
+                    abi.decode(_args(err), (HLPriceGuard.Breach, uint256, uint256));
+                assertEq(uint8(why), uint8(HLPriceGuard.Breach.RefOracle));
+                assertEq(observed, bps);
+                assertGt(bps, bandBps);
+            }
+        }
+    }
+
     function test_jumpLatchNeedsRearmAfterRealGap() public {
         h.observe(100, 200);
         (HLPriceGuard.Breach r,) = h.observe(105, 200); // a 5% opening gap

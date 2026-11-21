@@ -1,0 +1,810 @@
+{
+ "source": "Yahoo chart API: 000660.KS 1d, SKHY 1d, KRW=X 1h; reduced by adr_ref.py --fetch",
+ "window": [
+  "2026-06-01",
+  "2026-11-21"
+ ],
+ "sessions": [
+  {
+   "session": "2026-07-13",
+   "krx_open_utc": 1783900800,
+   "krx_open_krw": 2113000.0,
+   "usdkrw": 1499.0999755859375,
+   "open_usd": 1409.5123970461768,
+   "skhy_close_utc": 1783713600,
+   "skhy_close": 168.00999450683594
+  },
+  {
+   "session": "2026-07-14",
+   "krx_open_utc": 1783987200,
+   "krx_open_krw": 1825000.0,
+   "usdkrw": 1497.81005859375,
+   "open_usd": 1218.4455495735147,
+   "skhy_close_utc": 1783972800,
+   "skhy_close": 152.35000610351562
+  },
+  {
+   "session": "2026-07-15",
+   "krx_open_utc": 1784073600,
+   "krx_open_krw": 2120000.0,
+   "usdkrw": 1488.1800537109375,
+   "open_usd": 1424.5588057127572,
+   "skhy_close_utc": 1784059200,
+   "skhy_close": 193.9199981689453
+  },
+  {
+   "session": "2026-07-16",
+   "krx_open_utc": 1784160000,
+   "krx_open_krw": 1902000.0,
+   "usdkrw": 1486.6700439453125,
+   "open_usd": 1279.3692909507265,
+   "skhy_close_utc": 1784145600,
+   "skhy_close": 176.4600067138672
+  },
+  {
+   "session": "2026-07-20",
+   "krx_open_utc": 1784505600,
+   "krx_open_krw": 1745000.0,
+   "usdkrw": 1488.06005859375,
+   "open_usd": 1172.6677225978794,
+   "skhy_close_utc": 1784318400,
+   "skhy_close": 154.02999877929688
+  },
+  {
+   "session": "2026-07-21",
+   "krx_open_utc": 1784592000,
+   "krx_open_krw": 1775000.0,
+   "usdkrw": 1475.3399658203125,
+   "open_usd": 1203.112530753596,
+   "skhy_close_utc": 1784577600,
+   "skhy_close": 151.16000366210938
+  },
+  {
+   "session": "2026-07-22",
+   "krx_open_utc": 1784678400,
+   "krx_open_krw": 1977000.0,
+   "usdkrw": 1480.5999755859375,
+   "open_usd": 1335.2695073614434,
+   "skhy_close_utc": 1784664000,
+   "skhy_close": 171.94000244140625
+  },
+  {
+   "session": "2026-07-23",
+   "krx_open_utc": 1784764800,
+   "krx_open_krw": 1910000.0,
+   "usdkrw": 1476.4300537109375,
+   "open_usd": 1293.6610137400717,
+   "skhy_close_utc": 1784750400,
+   "skhy_close": 165.27000427246094
+  },
+  {
+   "session": "2026-07-24",
+   "krx_open_utc": 1784851200,
+   "krx_open_krw": 1894000.0,
+   "usdkrw": 1474.8800048828125,
+   "open_usd": 1284.1722673909928,
+   "skhy_close_utc": 1784836800,
+   "skhy_close": 169.5
+  },
+  {
+   "session": "2026-07-27",
+   "krx_open_utc": 1785110400,
+   "krx_open_krw": 1814000.0,
+   "usdkrw": 1458.1800537109375,
+   "open_usd": 1244.0164679139127,
+   "skhy_close_utc": 1784923200,
+   "skhy_close": 154.57000732421875
+  },
+  {
+   "session": "2026-07-28",
+   "krx_open_utc": 1785196800,
+   "krx_open_krw": 1662000.0,
+   "usdkrw": 1465.219970703125,
+   "open_usd": 1134.3006737769517,
+   "skhy_close_utc": 1785182400,
+   "skhy_close": 143.02000427246094
+  },
+  {
+   "session": "2026-07-29",
+   "krx_open_utc": 1785283200,
+   "krx_open_krw": 1567000.0,
+   "usdkrw": 1453.9200439453125,
+   "open_usd": 1077.7759110795648,
+   "skhy_close_utc": 1785268800,
+   "skhy_close": 130.1699981689453
+  },
+  {
+   "session": "2026-07-30",
+   "krx_open_utc": 1785369600,
+   "krx_open_krw": 1361000.0,
+   "usdkrw": 1443.5,
+   "open_usd": 942.8472462764115,
+   "skhy_close_utc": 1785355200,
+   "skhy_close": 126.79000091552734
+  },
+  {
+   "session": "2026-07-31",
+   "krx_open_utc": 1785456000,
+   "krx_open_krw": 1697000.0,
+   "usdkrw": 1421.4300537109375,
+   "open_usd": 1193.868101754026,
+   "skhy_close_utc": 1785441600,
+   "skhy_close": 149.0
+  },
+  {
+   "session": "2026-08-03",
+   "krx_open_utc": 1785715200,
+   "krx_open_krw": 1642000.0,
+   "usdkrw": 1438.260009765625,
+   "open_usd": 1141.6572725731114,
+   "skhy_close_utc": 1785528000,
+   "skhy_close": 143.72999572753906
+  },
+  {
+   "session": "2026-08-04",
+   "krx_open_utc": 1785801600,
+   "krx_open_krw": 1620000.0,
+   "usdkrw": 1429.25,
+   "open_usd": 1133.4616057372748,
+   "skhy_close_utc": 1785787200,
+   "skhy_close": 142.72000122070312
+  },
+  {
+   "session": "2026-08-05",
+   "krx_open_utc": 1785888000,
+   "krx_open_krw": 1693000.0,
+   "usdkrw": 1429.4300537109375,
+   "open_usd": 1184.3881381987244,
+   "skhy_close_utc": 1785873600,
+   "skhy_close": 154.3800048828125
+  },
+  {
+   "session": "2026-08-06",
+   "krx_open_utc": 1785974400,
+   "krx_open_krw": 1600000.0,
+   "usdkrw": 1422.22998046875,
+   "open_usd": 1124.9938631392506,
+   "skhy_close_utc": 1785960000,
+   "skhy_close": 151.02999877929688
+  },
+  {
+   "session": "2026-08-07",
+   "krx_open_utc": 1786060800,
+   "krx_open_krw": 1521000.0,
+   "usdkrw": 1423.0400390625,
+   "open_usd": 1068.838513498212,
+   "skhy_close_utc": 1786046400,
+   "skhy_close": 143.52999877929688
+  },
+  {
+   "session": "2026-08-10",
+   "krx_open_utc": 1786320000,
+   "krx_open_krw": 1443000.0,
+   "usdkrw": 1407.780029296875,
+   "open_usd": 1025.0180922943734,
+   "skhy_close_utc": 1786132800,
+   "skhy_close": 137.91000366210938
+  },
+  {
+   "session": "2026-08-11",
+   "krx_open_utc": 1786406400,
+   "krx_open_krw": 1405000.0,
+   "usdkrw": 1418.1500244140625,
+   "open_usd": 990.7273390066783,
+   "skhy_close_utc": 1786392000,
+   "skhy_close": 135.2899932861328
+  },
+  {
+   "session": "2026-08-12",
+   "krx_open_utc": 1786492800,
+   "krx_open_krw": 1456000.0,
+   "usdkrw": 1412.9300537109375,
+   "open_usd": 1030.4827165194363,
+   "skhy_close_utc": 1786478400,
+   "skhy_close": 141.64999389648438
+  },
+  {
+   "session": "2026-08-13",
+   "krx_open_utc": 1786579200,
+   "krx_open_krw": 1582000.0,
+   "usdkrw": 1417.3299560546875,
+   "open_usd": 1116.1832805705255,
+   "skhy_close_utc": 1786564800,
+   "skhy_close": 154.41000366210938
+  },
+  {
+   "session": "2026-08-14",
+   "krx_open_utc": 1786665600,
+   "krx_open_krw": 1695000.0,
+   "usdkrw": 1416.1800537109375,
+   "open_usd": 1196.8817069259285,
+   "skhy_close_utc": 1786651200,
+   "skhy_close": 165.6699981689453
+  },
+  {
+   "session": "2026-08-18",
+   "krx_open_utc": 1787011200,
+   "krx_open_krw": 1736000.0,
+   "usdkrw": 1414.6700439453125,
+   "open_usd": 1227.1412739882044,
+   "skhy_close_utc": 1786996800,
+   "skhy_close": 171.3800048828125
+  },
+  {
+   "session": "2026-08-19",
+   "krx_open_utc": 1787097600,
+   "krx_open_krw": 1545000.0,
+   "usdkrw": 1411.47998046875,
+   "open_usd": 1094.595758621322,
+   "skhy_close_utc": 1787083200,
+   "skhy_close": 155.6199951171875
+  },
+  {
+   "session": "2026-08-20",
+   "krx_open_utc": 1787184000,
+   "krx_open_krw": 1613000.0,
+   "usdkrw": 1388.6099853515625,
+   "open_usd": 1161.5932601778227,
+   "skhy_close_utc": 1787169600,
+   "skhy_close": 156.16000366210938
+  },
+  {
+   "session": "2026-08-21",
+   "krx_open_utc": 1787270400,
+   "krx_open_krw": 1675000.0,
+   "usdkrw": 1392.239990234375,
+   "open_usd": 1203.0971755940038,
+   "skhy_close_utc": 1787256000,
+   "skhy_close": 163.0800018310547
+  },
+  {
+   "session": "2026-08-24",
+   "krx_open_utc": 1787529600,
+   "krx_open_krw": 1775000.0,
+   "usdkrw": 1385.6099853515625,
+   "open_usd": 1281.0242555733603,
+   "skhy_close_utc": 1787342400,
+   "skhy_close": 163.41000366210938
+  },
+  {
+   "session": "2026-08-25",
+   "krx_open_utc": 1787616000,
+   "krx_open_krw": 1598000.0,
+   "usdkrw": 1381.449951171875,
+   "open_usd": 1156.7556237881995,
+   "skhy_close_utc": 1787601600,
+   "skhy_close": 155.3699951171875
+  },
+  {
+   "session": "2026-08-26",
+   "krx_open_utc": 1787702400,
+   "krx_open_krw": 1668000.0,
+   "usdkrw": 1381.760009765625,
+   "open_usd": 1207.1560822511626,
+   "skhy_close_utc": 1787688000,
+   "skhy_close": 159.52999877929688
+  },
+  {
+   "session": "2026-08-27",
+   "krx_open_utc": 1787788800,
+   "krx_open_krw": 1776000.0,
+   "usdkrw": 1384.469970703125,
+   "open_usd": 1282.8013879550094,
+   "skhy_close_utc": 1787774400,
+   "skhy_close": 158.02000427246094
+  },
+  {
+   "session": "2026-08-28",
+   "krx_open_utc": 1787875200,
+   "krx_open_krw": 1704000.0,
+   "usdkrw": 1380.81005859375,
+   "open_usd": 1234.0582177793478,
+   "skhy_close_utc": 1787860800,
+   "skhy_close": 161.61000061035156
+  },
+  {
+   "session": "2026-08-31",
+   "krx_open_utc": 1788134400,
+   "krx_open_krw": 1596000.0,
+   "usdkrw": 1377.8499755859375,
+   "open_usd": 1158.326398577097,
+   "skhy_close_utc": 1787947200,
+   "skhy_close": 161.0399932861328
+  },
+  {
+   "session": "2026-09-01",
+   "krx_open_utc": 1788220800,
+   "krx_open_krw": 1666000.0,
+   "usdkrw": 1367.3299560546875,
+   "open_usd": 1218.4330436284006,
+   "skhy_close_utc": 1788206400,
+   "skhy_close": 164.5800018310547
+  },
+  {
+   "session": "2026-09-02",
+   "krx_open_utc": 1788307200,
+   "krx_open_krw": 1630000.0,
+   "usdkrw": 1373.1500244140625,
+   "open_usd": 1187.0516484136815,
+   "skhy_close_utc": 1788292800,
+   "skhy_close": 160.77999877929688
+  },
+  {
+   "session": "2026-09-03",
+   "krx_open_utc": 1788393600,
+   "krx_open_krw": 1643000.0,
+   "usdkrw": 1359.3599853515625,
+   "open_usd": 1208.6570280903786,
+   "skhy_close_utc": 1788379200,
+   "skhy_close": 164.97999572753906
+  },
+  {
+   "session": "2026-09-04",
+   "krx_open_utc": 1788480000,
+   "krx_open_krw": 1620000.0,
+   "usdkrw": 1356.1800537109375,
+   "open_usd": 1194.5316520230242,
+   "skhy_close_utc": 1788465600,
+   "skhy_close": 163.67999267578125
+  },
+  {
+   "session": "2026-09-07",
+   "krx_open_utc": 1788739200,
+   "krx_open_krw": 1737000.0,
+   "usdkrw": 1345.8499755859375,
+   "open_usd": 1290.6341951254776,
+   "skhy_close_utc": 1788552000,
+   "skhy_close": 177.0
+  },
+  {
+   "session": "2026-09-08",
+   "krx_open_utc": 1788825600,
+   "krx_open_krw": 1799000.0,
+   "usdkrw": 1344.4000244140625,
+   "open_usd": 1338.1433853990507,
+   "skhy_close_utc": 1788552000,
+   "skhy_close": 177.0
+  },
+  {
+   "session": "2026-09-09",
+   "krx_open_utc": 1788912000,
+   "krx_open_krw": 1795000.0,
+   "usdkrw": 1340.27001953125,
+   "open_usd": 1339.282363883502,
+   "skhy_close_utc": 1788897600,
+   "skhy_close": 185.5500030517578
+  },
+  {
+   "session": "2026-09-10",
+   "krx_open_utc": 1788998400,
+   "krx_open_krw": 1879000.0,
+   "usdkrw": 1339.949951171875,
+   "open_usd": 1402.2911813659084,
+   "skhy_close_utc": 1788984000,
+   "skhy_close": 198.6300048828125
+  },
+  {
+   "session": "2026-09-11",
+   "krx_open_utc": 1789084800,
+   "krx_open_krw": 1773000.0,
+   "usdkrw": 1349.1400146484375,
+   "open_usd": 1314.170494351554,
+   "skhy_close_utc": 1789070400,
+   "skhy_close": 188.3000030517578
+  },
+  {
+   "session": "2026-09-14",
+   "krx_open_utc": 1789344000,
+   "krx_open_krw": 1707000.0,
+   "usdkrw": 1343.3800048828125,
+   "open_usd": 1270.6754557872903,
+   "skhy_close_utc": 1789156800,
+   "skhy_close": 190.07000732421875
+  },
+  {
+   "session": "2026-09-15",
+   "krx_open_utc": 1789430400,
+   "krx_open_krw": 1690000.0,
+   "usdkrw": 1347.72998046875,
+   "open_usd": 1253.96038115306,
+   "skhy_close_utc": 1789416000,
+   "skhy_close": 175.6300048828125
+  },
+  {
+   "session": "2026-09-16",
+   "krx_open_utc": 1789516800,
+   "krx_open_krw": 1686000.0,
+   "usdkrw": 1364.1600341796875,
+   "open_usd": 1235.9253736779094,
+   "skhy_close_utc": 1789502400,
+   "skhy_close": 174.8300018310547
+  },
+  {
+   "session": "2026-09-17",
+   "krx_open_utc": 1789603200,
+   "krx_open_krw": 1770000.0,
+   "usdkrw": 1377.7099609375,
+   "open_usd": 1284.7406567312294,
+   "skhy_close_utc": 1789588800,
+   "skhy_close": 174.8699951171875
+  },
+  {
+   "session": "2026-09-18",
+   "krx_open_utc": 1789689600,
+   "krx_open_krw": 1810000.0,
+   "usdkrw": 1380.3599853515625,
+   "open_usd": 1311.252151038711,
+   "skhy_close_utc": 1789675200,
+   "skhy_close": 182.99000549316406
+  },
+  {
+   "session": "2026-09-21",
+   "krx_open_utc": 1789948800,
+   "krx_open_krw": 1872000.0,
+   "usdkrw": 1385.7099609375,
+   "open_usd": 1350.9320512739198,
+   "skhy_close_utc": 1789761600,
+   "skhy_close": 187.5
+  },
+  {
+   "session": "2026-09-22",
+   "krx_open_utc": 1790035200,
+   "krx_open_krw": 1909000.0,
+   "usdkrw": 1373.7099609375,
+   "open_usd": 1389.6674365651297,
+   "skhy_close_utc": 1790020800,
+   "skhy_close": 188.86000061035156
+  },
+  {
+   "session": "2026-09-23",
+   "krx_open_utc": 1790121600,
+   "krx_open_krw": 1899000.0,
+   "usdkrw": 1352.8199462890625,
+   "open_usd": 1403.7344771631813,
+   "skhy_close_utc": 1790107200,
+   "skhy_close": 195.3699951171875
+  },
+  {
+   "session": "2026-09-28",
+   "krx_open_utc": 1790553600,
+   "krx_open_krw": 1825000.0,
+   "usdkrw": 1355.22998046875,
+   "open_usd": 1346.6349079502838,
+   "skhy_close_utc": 1790366400,
+   "skhy_close": 191.55999755859375
+  },
+  {
+   "session": "2026-09-29",
+   "krx_open_utc": 1790640000,
+   "krx_open_krw": 1755000.0,
+   "usdkrw": 1359.8299560546875,
+   "open_usd": 1290.6025434914159,
+   "skhy_close_utc": 1790625600,
+   "skhy_close": 181.9199981689453
+  },
+  {
+   "session": "2026-09-30",
+   "krx_open_utc": 1790726400,
+   "krx_open_krw": 1789000.0,
+   "usdkrw": 1350.5799560546875,
+   "open_usd": 1324.616133965163,
+   "skhy_close_utc": 1790712000,
+   "skhy_close": 186.67999267578125
+  },
+  {
+   "session": "2026-10-01",
+   "krx_open_utc": 1790812800,
+   "krx_open_krw": 1762000.0,
+   "usdkrw": 1357.9599609375,
+   "open_usd": 1297.5345744240951,
+   "skhy_close_utc": 1790798400,
+   "skhy_close": 184.14999389648438
+  },
+  {
+   "session": "2026-10-02",
+   "krx_open_utc": 1790899200,
+   "krx_open_krw": 1830000.0,
+   "usdkrw": 1360.5799560546875,
+   "open_usd": 1345.0146695579017,
+   "skhy_close_utc": 1790884800,
+   "skhy_close": 193.5
+  },
+  {
+   "session": "2026-10-06",
+   "krx_open_utc": 1791244800,
+   "krx_open_krw": 1835000.0,
+   "usdkrw": 1343.72998046875,
+   "open_usd": 1365.6017404329061,
+   "skhy_close_utc": 1791230400,
+   "skhy_close": 195.02000427246094
+  },
+  {
+   "session": "2026-10-07",
+   "krx_open_utc": 1791331200,
+   "krx_open_krw": 1728000.0,
+   "usdkrw": 1339.9200439453125,
+   "open_usd": 1289.6291892999898,
+   "skhy_close_utc": 1791316800,
+   "skhy_close": 182.55999755859375
+  },
+  {
+   "session": "2026-10-08",
+   "krx_open_utc": 1791417600,
+   "krx_open_krw": 1722000.0,
+   "usdkrw": 1339.56005859375,
+   "open_usd": 1285.496674040677,
+   "skhy_close_utc": 1791403200,
+   "skhy_close": 178.25
+  },
+  {
+   "session": "2026-10-12",
+   "krx_open_utc": 1791763200,
+   "krx_open_krw": 1640000.0,
+   "usdkrw": 1341.56005859375,
+   "open_usd": 1222.4573842181026,
+   "skhy_close_utc": 1791576000,
+   "skhy_close": 169.02999877929688
+  },
+  {
+   "session": "2026-10-13",
+   "krx_open_utc": 1791849600,
+   "krx_open_krw": 1538000.0,
+   "usdkrw": 1334.5999755859375,
+   "open_usd": 1152.4052361268496,
+   "skhy_close_utc": 1791835200,
+   "skhy_close": 162.22999572753906
+  },
+  {
+   "session": "2026-10-14",
+   "krx_open_utc": 1791936000,
+   "krx_open_krw": 1458000.0,
+   "usdkrw": 1339.7900390625,
+   "open_usd": 1088.2302133103003,
+   "skhy_close_utc": 1791921600,
+   "skhy_close": 157.05999755859375
+  },
+  {
+   "session": "2026-10-15",
+   "krx_open_utc": 1792022400,
+   "krx_open_krw": 1304000.0,
+   "usdkrw": 1340.3599853515625,
+   "open_usd": 972.8729701356866,
+   "skhy_close_utc": 1792008000,
+   "skhy_close": 147.5500030517578
+  },
+  {
+   "session": "2026-10-16",
+   "krx_open_utc": 1792108800,
+   "krx_open_krw": 1290000.0,
+   "usdkrw": 1341.0,
+   "open_usd": 961.9686800894855,
+   "skhy_close_utc": 1792094400,
+   "skhy_close": 146.11000061035156
+  },
+  {
+   "session": "2026-10-19",
+   "krx_open_utc": 1792368000,
+   "krx_open_krw": 1212000.0,
+   "usdkrw": 1334.3499755859375,
+   "open_usd": 908.3074322145422,
+   "skhy_close_utc": 1792180800,
+   "skhy_close": 136.49000549316406
+  },
+  {
+   "session": "2026-10-20",
+   "krx_open_utc": 1792454400,
+   "krx_open_krw": 1265000.0,
+   "usdkrw": 1330.8199462890625,
+   "open_usd": 950.5418096019685,
+   "skhy_close_utc": 1792440000,
+   "skhy_close": 142.8699951171875
+  },
+  {
+   "session": "2026-10-21",
+   "krx_open_utc": 1792540800,
+   "krx_open_krw": 1260000.0,
+   "usdkrw": 1324.77001953125,
+   "open_usd": 951.1084802823603,
+   "skhy_close_utc": 1792526400,
+   "skhy_close": 139.7899932861328
+  },
+  {
+   "session": "2026-10-22",
+   "krx_open_utc": 1792627200,
+   "krx_open_krw": 1273000.0,
+   "usdkrw": 1326.8399658203125,
+   "open_usd": 959.4224117397412,
+   "skhy_close_utc": 1792612800,
+   "skhy_close": 143.25
+  },
+  {
+   "session": "2026-10-23",
+   "krx_open_utc": 1792713600,
+   "krx_open_krw": 1200000.0,
+   "usdkrw": 1325.7900390625,
+   "open_usd": 905.120693808011,
+   "skhy_close_utc": 1792699200,
+   "skhy_close": 131.69000244140625
+  },
+  {
+   "session": "2026-10-26",
+   "krx_open_utc": 1792972800,
+   "krx_open_krw": 1279000.0,
+   "usdkrw": 1323.5699462890625,
+   "open_usd": 966.325960774476,
+   "skhy_close_utc": 1792785600,
+   "skhy_close": 137.02000427246094
+  },
+  {
+   "session": "2026-10-27",
+   "krx_open_utc": 1793059200,
+   "krx_open_krw": 1346000.0,
+   "usdkrw": 1324.9000244140625,
+   "open_usd": 1015.9257115232291,
+   "skhy_close_utc": 1793044800,
+   "skhy_close": 142.6199951171875
+  },
+  {
+   "session": "2026-10-28",
+   "krx_open_utc": 1793145600,
+   "krx_open_krw": 1390000.0,
+   "usdkrw": 1326.8800048828125,
+   "open_usd": 1047.5702361064384,
+   "skhy_close_utc": 1793131200,
+   "skhy_close": 145.36000061035156
+  },
+  {
+   "session": "2026-10-29",
+   "krx_open_utc": 1793232000,
+   "krx_open_krw": 1511000.0,
+   "usdkrw": 1340.97998046875,
+   "open_usd": 1126.7878879681844,
+   "skhy_close_utc": 1793217600,
+   "skhy_close": 164.6999969482422
+  },
+  {
+   "session": "2026-10-30",
+   "krx_open_utc": 1793318400,
+   "krx_open_krw": 1444000.0,
+   "usdkrw": 1338.6800537109375,
+   "open_usd": 1078.6744719151573,
+   "skhy_close_utc": 1793304000,
+   "skhy_close": 162.08999633789062
+  },
+  {
+   "session": "2026-11-02",
+   "krx_open_utc": 1793577600,
+   "krx_open_krw": 1402000.0,
+   "usdkrw": 1333.530029296875,
+   "open_usd": 1051.3449035258898,
+   "skhy_close_utc": 1793390400,
+   "skhy_close": 149.2100067138672
+  },
+  {
+   "session": "2026-11-03",
+   "krx_open_utc": 1793664000,
+   "krx_open_krw": 1410000.0,
+   "usdkrw": 1345.1600341796875,
+   "open_usd": 1048.2024176847133,
+   "skhy_close_utc": 1793653200,
+   "skhy_close": 147.7100067138672
+  },
+  {
+   "session": "2026-11-04",
+   "krx_open_utc": 1793750400,
+   "krx_open_krw": 1458000.0,
+   "usdkrw": 1343.760009765625,
+   "open_usd": 1085.0151733971459,
+   "skhy_close_utc": 1793739600,
+   "skhy_close": 150.7899932861328
+  },
+  {
+   "session": "2026-11-05",
+   "krx_open_utc": 1793836800,
+   "krx_open_krw": 1320000.0,
+   "usdkrw": 1340.9200439453125,
+   "open_usd": 984.3987387318332,
+   "skhy_close_utc": 1793826000,
+   "skhy_close": 143.07000732421875
+  },
+  {
+   "session": "2026-11-06",
+   "krx_open_utc": 1793923200,
+   "krx_open_krw": 1089000.0,
+   "usdkrw": 1357.3900146484375,
+   "open_usd": 802.2749454820837,
+   "skhy_close_utc": 1793912400,
+   "skhy_close": 123.9000015258789
+  },
+  {
+   "session": "2026-11-09",
+   "krx_open_utc": 1794182400,
+   "krx_open_krw": 1130000.0,
+   "usdkrw": 1361.6199951171875,
+   "open_usd": 829.8938059460171,
+   "skhy_close_utc": 1793998800,
+   "skhy_close": 127.33999633789062
+  },
+  {
+   "session": "2026-11-10",
+   "krx_open_utc": 1794268800,
+   "krx_open_krw": 1214000.0,
+   "usdkrw": 1343.81005859375,
+   "open_usd": 903.4014831459205,
+   "skhy_close_utc": 1794258000,
+   "skhy_close": 134.3800048828125
+  },
+  {
+   "session": "2026-11-11",
+   "krx_open_utc": 1794355200,
+   "krx_open_krw": 1206000.0,
+   "usdkrw": 1342.2099609375,
+   "open_usd": 898.5181417947749,
+   "skhy_close_utc": 1794344400,
+   "skhy_close": 129.66000366210938
+  },
+  {
+   "session": "2026-11-12",
+   "krx_open_utc": 1794441600,
+   "krx_open_krw": 1280000.0,
+   "usdkrw": 1336.3199462890625,
+   "open_usd": 957.8544446294751,
+   "skhy_close_utc": 1794430800,
+   "skhy_close": 142.25
+  },
+  {
+   "session": "2026-11-13",
+   "krx_open_utc": 1794528000,
+   "krx_open_krw": 1292000.0,
+   "usdkrw": 1333.8800048828125,
+   "open_usd": 968.602869276467,
+   "skhy_close_utc": 1794517200,
+   "skhy_close": 137.7100067138672
+  },
+  {
+   "session": "2026-11-16",
+   "krx_open_utc": 1794787200,
+   "krx_open_krw": 1216000.0,
+   "usdkrw": 1335.8199462890625,
+   "open_usd": 910.3023228378008,
+   "skhy_close_utc": 1794603600,
+   "skhy_close": 131.7899932861328
+  },
+  {
+   "session": "2026-11-17",
+   "krx_open_utc": 1794873600,
+   "krx_open_krw": 1098000.0,
+   "usdkrw": 1335.469970703125,
+   "open_usd": 822.1824706563061,
+   "skhy_close_utc": 1794862800,
+   "skhy_close": 122.18000030517578
+  },
+  {
+   "session": "2026-11-18",
+   "krx_open_utc": 1794960000,
+   "krx_open_krw": 1154000.0,
+   "usdkrw": 1331.27001953125,
+   "open_usd": 866.8414244063965,
+   "skhy_close_utc": 1794949200,
+   "skhy_close": 122.61000061035156
+  },
+  {
+   "session": "2026-11-19",
+   "krx_open_utc": 1795046400,
+   "krx_open_krw": 1154000.0,
+   "usdkrw": 1331.530029296875,
+   "open_usd": 866.6721550466112,
+   "skhy_close_utc": 1795035600,
+   "skhy_close": 122.47000122070312
+  },
+  {
+   "session": "2026-11-20",
+   "krx_open_utc": 1795132800,
+   "krx_open_krw": 1117000.0,
+   "usdkrw": 1334.47998046875,
+   "open_usd": 837.0301663181505,
+   "skhy_close_utc": 1795122000,
+   "skhy_close": 119.19999694824219
+  }
+ ]
+}
