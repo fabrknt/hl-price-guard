@@ -167,6 +167,9 @@ Index encodings differ between precompiles (checked on mainnet, 2026-10-17):
   the cap does not cover (settlements at a single instant; a HIP-3 deployer's oracle key); then
   liquidations, prices at a set time (including time-averages of HIP-3 oracles that are built
   from their own book) and testnet, learned from apps built on the library.
+- `docs/stock-offhours.md`: how far xyz's US-stock perps go from the close and the next open over
+  weekends and holidays (29 names, 2026-05 to 11, `measure/offhours_gaps.py`): traded-price
+  coverage figures for a band around the close, to inform a settling contract's governed rule.
 - `docs/c-launch-pool-design.md`: points to Day One, where the launch-pool design now lives.
 - `cases/`: incidents rebuilt from public data. Each is replayed under rules built from this library
   (oracle instead of BBO, deviation tripwire, exposure cap), plus the two-step settlement Day One adds.

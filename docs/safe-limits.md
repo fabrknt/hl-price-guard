@@ -270,8 +270,11 @@ them. A HIP-3 oracle is posted by the deployer, and whoever holds that key can p
 that is not a cost an attacker pays, and no book-derived cap offsets it. Settle on a HIP-3 oracle
 only while a fresh independent reference agrees with it (section 3); when none can be fresh, as
 for stocks out of hours, pause price-sensitive settlement or fall back to an explicitly governed
-rule (for a stock with a US-listed ADR, a wide band around the ADR's close, section 3). The cap
-then limits only what a book push adds on top.
+rule (for a stock with a US-listed ADR, a wide band around the ADR's close, section 3).
+[stock-offhours.md](stock-offhours.md) measures how far xyz's US-stock perps go from the close and
+the next open over weekends and holidays: traded-price coverage figures that can inform such a
+band's width. The cap then limits only what a
+book push adds on top.
 
 ## 5. Liquidations, prices at a set time, testnet
 Learned from apps built on this library (psyto/hyperevm-lend, psyto/hyperevm-perp and others).
